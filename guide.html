@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>하루결 사용설명서 V3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #F8F7FF;
+    --main: #8B7CF6;
+    --point: #FFB8D1;
+    --text: #4D426D;
+    --text-soft: #7A6FA0;
+    --card: #FFFFFF;
+    --line: #ECE8FB;
+    --radius: 18px;
+    --radius-lg: 24px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    font-family: 'Gowun Dodum', sans-serif;
+    color: var(--text);
+    background: #E9E6F7;
+    line-height: 1.85;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .serif { font-family: 'Gowun Batang', serif; }
+
+  /* A4 page */
+  .page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    margin: 14px auto;
+    background: var(--bg);
+    padding: 22mm 22mm 24mm;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* content area vertically centered so pages don't sit only at the top */
+  .page-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .page-head { margin-bottom: 30px; }
+
+  .page-num {
+    position: absolute;
+    bottom: 13mm;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-soft);
+    letter-spacing: 0.18em;
+  }
+
+  /* eyebrow / section headers */
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.32em;
+    color: var(--main);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  h2.section-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .section-sub {
+    font-size: 14px;
+    color: var(--text-soft);
+  }
+
+  /* small lavender info card reused across pages */
+  .info-card {
+    background: linear-gradient(170deg, #F1EDFF, #FBF8FF);
+    border: 1px solid #E2DBF5;
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    text-align: center;
+  }
+  .info-card .ico { font-size: 24px; display: block; margin-bottom: 10px; }
+  .info-card p { font-size: 14.5px; color: var(--text-soft); line-height: 1.8; }
+  .info-card p strong { color: var(--main); font-weight: 700; }
+
+  .page-sign {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    color: var(--text-soft);
+    margin-top: 26px;
+  }
+
+  /* ───────── COVER ───────── */
+  .cover {
+    background: linear-gradient(165deg, #EDE9FF 0%, #F8F7FF 42%, #FDEEF5 100%);
+  }
+  .cover .page-inner { align-items: center; justify-content: center; text-align: center; }
+  .stars { position: absolute; inset: 0; pointer-events: none; }
+  .star { position: absolute; color: var(--main); opacity: 0.5; font-size: 13px; }
+  .cover .s1 { top: 16%; left: 22%; font-size: 10px; opacity: 0.4; }
+  .cover .s2 { top: 24%; right: 20%; font-size: 16px; }
+  .cover .s3 { top: 60%; left: 18%; font-size: 12px; }
+  .cover .s4 { bottom: 22%; right: 24%; font-size: 10px; opacity: 0.35; }
+  .cover .s5 { top: 70%; right: 30%; font-size: 9px; opacity: 0.5; }
+
+  .cover-moon { font-size: 60px; margin-bottom: 26px; }
+  .cover-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    margin-bottom: 30px;
+  }
+  .cover-rule { width: 46px; height: 2px; background: var(--point); border-radius: 2px; margin: 0 auto 30px; }
+  .cover-lead { font-family: 'Gowun Batang', serif; font-size: 20px; color: var(--main); margin-bottom: 14px; }
+  .cover-sub { font-size: 15px; color: var(--text-soft); }
+  .cover-badge {
+    position: absolute;
+    bottom: 24mm;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--text-soft);
+  }
+
+  /* ───────── generic card ───────── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 30px 32px;
+  }
+
+  .lead-card { padding: 40px 40px; }
+  .lead-card p { font-size: 16px; margin-bottom: 18px; }
+  .lead-card p:last-child { margin-bottom: 0; }
+  .lead-card .hi { font-family: 'Gowun Batang', serif; font-size: 22px; color: var(--text); margin-bottom: 24px; }
+  .accent { color: var(--main); }
+
+  /* quote card (p1) */
+  .quote-card {
+    margin-top: 22px;
+    background: linear-gradient(170deg, #F1EDFF, #FDF1F7);
+    border: 1px solid #E6DFF7;
+    border-radius: var(--radius-lg);
+    padding: 34px 36px;
+    text-align: center;
+  }
+  .quote-card .qmoon { font-size: 30px; margin-bottom: 14px; }
+  .quote-card p {
+    font-family: 'Gowun Batang', serif;
+    font-size: 17px;
+    color: var(--text);
+    line-height: 1.95;
+  }
+
+  /* ───────── recommend grid (p2) ───────── */
+  .rec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .rec-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 30px 26px;
+    text-align: center;
+  }
+  .rec-card .ico { font-size: 34px; display: block; margin-bottom: 16px; }
+  .rec-card p { font-size: 14.5px; color: var(--text); line-height: 1.7; }
+
+  /* ───────── steps timeline (p3) ───────── */
+  .timeline { position: relative; padding-left: 8px; }
+  .step { position: relative; display: flex; align-items: flex-start; gap: 22px; padding-bottom: 24px; }
+  .step:last-child { padding-bottom: 0; }
+  .step-rail { position: relative; flex-shrink: 0; width: 52px; display: flex; flex-direction: column; align-items: center; }
+  .step-dot {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: #FFFFFF; border: 1.5px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; z-index: 2;
+  }
+  .step-line { position: absolute; top: 52px; bottom: -24px; width: 1.5px; background: var(--line); z-index: 1; }
+  .step:last-child .step-line { display: none; }
+  .step-body { padding-top: 6px; }
+  .step-tag { font-size: 11px; letter-spacing: 0.2em; color: var(--main); margin-bottom: 4px; }
+  .step-body h3 { font-family: 'Gowun Batang', serif; font-size: 19px; font-weight: 700; color: var(--text); }
+
+  /* ───────── feature grid (p4) ───────── */
+  .feat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .feat-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 24px 24px; display: flex; align-items: center; gap: 16px;
+  }
+  .feat-card .ico {
+    font-size: 26px; width: 48px; height: 48px; flex-shrink: 0;
+    background: #F4F1FF; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feat-card h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .feat-card p { font-size: 12.5px; color: var(--text-soft); line-height: 1.6; }
+
+  /* mini detail cards (p4) */
+  .mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 22px; }
+  .mini-card {
+    background: linear-gradient(170deg, #F4F1FF, #FBF8FF);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px 18px; text-align: center;
+  }
+  .mini-card .ico { font-size: 24px; display: block; margin-bottom: 10px; }
+  .mini-card h4 { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .mini-card p { font-size: 12px; color: var(--text-soft); line-height: 1.65; }
+
+  /* ───────── screens (p5) ───────── */
+  .screen-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .screen { text-align: center; }
+  .screen-frame {
+    aspect-ratio: 9 / 16;
+    background: linear-gradient(165deg, #F4F1FF, #FDEEF5);
+    border: 1.5px solid var(--line); border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  }
+  .screen-frame span { font-size: 24px; opacity: 0.45; }
+  .screen-label { font-size: 13.5px; color: var(--text); }
+  .screen-note { margin-top: 24px; text-align: center; font-size: 12.5px; color: var(--text-soft); }
+
+  /* ───────── FAQ (p6) ───────── */
+  .faq-card {
+    background: linear-gradient(170deg, #F3F0FF, #FBF8FF);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 26px 30px; margin-bottom: 16px;
+  }
+  .faq-card:last-child { margin-bottom: 0; }
+  .faq-q { font-family: 'Gowun Batang', serif; font-size: 17px; font-weight: 700; color: var(--main); margin-bottom: 10px; }
+  .faq-a { font-size: 14.5px; color: var(--text); }
+  .faq-a strong { color: var(--text); font-weight: 700; }
+
+  /* faq footnote chips */
+  .chip-row { margin-top: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .chip {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 18px 24px;
+  }
+  .chip .ico { font-size: 20px; flex-shrink: 0; }
+  .chip p { font-size: 14px; color: var(--text); }
+
+  /* ───────── tips (p7) ───────── */
+  .tip {
+    display: flex; align-items: flex-start; gap: 18px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 22px 28px; margin-bottom: 14px;
+  }
+  .tip:last-child { margin-bottom: 0; }
+  .tip .chk {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: #F4F1FF; color: var(--main);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .tip p { font-size: 15px; color: var(--text); padding-top: 2px; }
+
+  /* habit timeline (p7) */
+  .habit {
+    margin-top: 28px;
+    background: linear-gradient(170deg, #F1EDFF, #FBF8FF);
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 28px 30px;
+  }
+  .habit h3 {
+    font-family: 'Gowun Batang', serif; font-size: 17px; font-weight: 700;
+    color: var(--text); text-align: center; margin-bottom: 22px;
+  }
+  .habit-row { display: flex; align-items: flex-start; justify-content: space-between; position: relative; }
+  .habit-row::before {
+    content: ""; position: absolute; top: 13px; left: 9%; right: 9%;
+    height: 1.5px; background: #DDD4F4; z-index: 0;
+  }
+  .habit-item { position: relative; z-index: 1; text-align: center; flex: 1; }
+  .habit-dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #FFFFFF; border: 1.5px solid var(--main);
+    margin: 0 auto 12px; position: relative;
+  }
+  .habit-dot::after {
+    content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--point);
+  }
+  .habit-item span { font-size: 13px; color: var(--text); display: block; }
+  .habit-note { margin-top: 18px; text-align: center; font-size: 12.5px; color: var(--text-soft); }
+
+  /* ───────── notice (p8) ───────── */
+  .notice-card {
+    width: 100%;
+    background: linear-gradient(170deg, #F2EFFC, #FAF6FF);
+    border: 1px solid #E2DBF5; border-radius: var(--radius-lg);
+    padding: 48px 46px; text-align: center;
+  }
+  .notice-ico { font-size: 40px; margin-bottom: 22px; }
+  .notice-card h3 { font-family: 'Gowun Batang', serif; font-size: 21px; color: var(--text); margin-bottom: 18px; }
+  .notice-card p { font-size: 15.5px; color: var(--text-soft); line-height: 1.95; }
+  .notice-list { margin-top: 22px; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+  .notice-pill {
+    background: #FFFFFF; border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 20px; font-size: 13px; color: var(--main);
+  }
+  .notice-foot {
+    margin-top: 30px; text-align: center;
+    font-family: 'Gowun Batang', serif; font-size: 15.5px; color: var(--text); line-height: 1.8;
+  }
+  .notice-foot .m { font-size: 22px; display: block; margin-bottom: 8px; }
+
+  /* ───────── story (p9) ───────── */
+  .story .page-inner { justify-content: center; }
+  .story-card {
+    background: linear-gradient(175deg, #FFFFFF, #FBF9FF);
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 44px 44px;
+  }
+  .story-card p {
+    font-size: 15.5px; color: var(--text); line-height: 2.05; margin-bottom: 18px;
+  }
+  .story-card p:last-of-type { margin-bottom: 0; }
+  .story-card .first { font-family: 'Gowun Batang', serif; font-size: 17px; color: var(--text); }
+  .story-divider { width: 40px; height: 2px; background: var(--point); border-radius: 2px; margin: 28px auto; }
+  .story-quote {
+    text-align: center;
+    font-family: 'Gowun Batang', serif;
+    font-size: 18px; color: var(--main); line-height: 1.7;
+  }
+  .story-quote .m { font-size: 30px; display: block; margin-bottom: 12px; }
+
+  /* ───────── closing (p10) ───────── */
+  .closing { background: linear-gradient(200deg, #EDE9FF 0%, #F8F7FF 50%, #FDEEF5 100%); }
+  .closing .page-inner { align-items: center; justify-content: center; text-align: center; }
+  .closing .c1 { top: 18%; left: 26%; font-size: 11px; opacity: 0.4; }
+  .closing .c2 { top: 30%; right: 24%; font-size: 14px; opacity: 0.4; }
+  .closing .c3 { bottom: 26%; left: 22%; font-size: 10px; opacity: 0.4; }
+  .closing .c4 { bottom: 20%; right: 28%; font-size: 12px; opacity: 0.35; }
+
+  .closing-moon { font-size: 48px; margin-bottom: 24px; }
+  .closing-title { font-family: 'Gowun Batang', serif; font-size: 30px; font-weight: 700; color: var(--text); line-height: 1.5; margin-bottom: 24px; }
+  .closing-rule { width: 40px; height: 2px; background: var(--point); border-radius: 2px; margin: 0 auto 28px; }
+  .closing-body { max-width: 400px; font-size: 15.5px; color: var(--text-soft); line-height: 2.1; }
+  .closing-body .em { font-family: 'Gowun Batang', serif; font-size: 18px; color: var(--main); display: block; margin: 22px 0 4px; }
+  .closing-brand { margin-top: 34px; font-family: 'Gowun Batang', serif; font-size: 22px; color: var(--text); }
+  .closing-brand .m { font-size: 20px; }
+  .closing-sign { margin-top: 16px; font-size: 12px; letter-spacing: 0.26em; color: var(--text-soft); }
+
+  /* ───────── PRINT ───────── */
+  @media print {
+    body { background: #FFFFFF; }
+    .page {
+      margin: 0; width: 210mm; height: 297mm;
+      page-break-after: always; break-after: page;
+    }
+    .page:last-child { page-break-after: auto; break-after: auto; }
+  }
+
+  @page { size: A4; margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- ════════ 표지 ════════ -->
+<section class="page cover">
+  <div class="stars">
+    <span class="star s1">✦</span><span class="star s2">✶</span>
+    <span class="star s3">✦</span><span class="star s4">✶</span><span class="star s5">✦</span>
+  </div>
+  <div class="page-inner">
+    <div class="cover-moon">🌙</div>
+    <h1 class="cover-title">하루결</h1>
+    <div class="cover-rule"></div>
+    <p class="cover-lead">기억하지 못한 감정을 기록으로.</p>
+    <p class="cover-sub">오늘 하루도 수고 많았어요.</p>
+  </div>
+  <div class="cover-badge">하 루 결 · 사 용 설 명 서</div>
+</section>
+
+<!-- ════════ 1페이지 ════════ -->
+<section class="page">
+  <div class="page-inner">
+    <div class="page-head">
+      <div class="eyebrow">WELCOME</div>
+      <h2 class="section-title">안녕하세요.</h2>
+      <p class="section-sub">하루결을 찾아주셔서 감사합니다.</p>
+    </div>
+    <div class="card lead-card">
+      <p class="hi serif">하루결은 치료하거나 진단하는 앱이 아닙니다.</p>
+      <p>기억하지 못한 하루를 기록으로 남기고, <span class="accent">천천히 나를 돌아볼 수 있도록</span> 돕는 작은 기록 공간입니다.</p>
+      <p>완벽하게 기록하지 않아도 괜찮아요.<br />생각나는 만큼 천천히 남겨보세요.</p>
+    </div>
+    <div class="quote-card">
+      <div class="qmoon">🌙</div>
+      <p>완벽하게 기억하지 않아도 괜찮아요.<br />생각나는 만큼 천천히 남겨보세요.</p>
+    </div>
+    <div class="page-sign">오 늘 하 루 도 수 고 많 았 어 요</div>
+  </div>
+  <div class="page-num">— 1 —</div>
+</section>
+
+<!-- ════════ 2페이지 ════════ -->
+<section class="page">
+  <div class="page-inner">
+    <div class="page-head">
+      <div class="eyebrow">FOR YOU</div>
+      <h2 class="section-title">🌷 이런 분께 추천드려요</h2>
+      <p class="section-sub">하루결이 곁에 있으면 조금 더 편안한 분들이에요.</p>
+    </div>
+    <div class="rec-grid">
+      <div class="rec-card"><span class="ico">🧠</span><p>내 증상을 기억하지 못해<br />설명하기 어려운 분</p></div>
+      <div class="rec-card"><span class="ico">🕒</span><p>짧은 진료 시간 안에<br />상태를 정리하고 싶은 분</p></div>
+      <div class="rec-card"><span class="ico">💭</span><p>감정이 자주 변해<br />하루를 돌아보고 싶은 분</p></div>
+      <div class="rec-card"><span class="ico">🌙</span><p>나를 조금 더<br />이해하고 싶은 분</p></div>
+    </div>
+    <div class="info-card" style="margin-top:22px;">
+      <span class="ico">💜</span>
+      <p>모든 날을 기록하지 않아도 괜찮아요.<br />필요한 날에만 조용히 꺼내보세요.</p>
+    </div>
+  </div>
+  <div class="page-num">— 2 —</div>
+</section>
+
+<!-- ════════ 3페이지 ════════ -->
+<section class="page">
+  <div class="page-inner">
+    <div class="page-head">
+      <div class="eyebrow">GET STARTED</div>
+      <h2 class="section-title">✨ 시작하기</h2>
+      <p class="section-sub">다섯 걸음이면 오늘 하루가 기록으로 남아요.</p>
+    </div>
+    <div class="timeline">
+      <div class="step"><div class="step-rail"><div class="step-dot">😊</div><div class="step-line"></div></div><div class="step-body"><div class="step-tag">STEP 1</div><h3>감정 기록</h3></div></div>
+      <div class="step"><div class="step-rail"><div class="step-dot">💭</div><div class="step-line"></div></div><div class="step-body"><div class="step-tag">STEP 2</div><h3>원인 기록</h3></div></div>
+      <div class="step"><div class="step-rail"><div class="step-dot">😴</div><div class="step-line"></div></div><div class="step-body"><div class="step-tag">STEP 3</div><h3>수면 · 약 복용</h3></div></div>
+      <div class="step"><div class="step-rail"><div class="step-dot">📝</div><div class="step-line"></div></div><div class="step-body"><div class="step-tag">STEP 4</div><h3>메모</h3></div></div>
+      <div class="step"><div class="step-rail"><div class="step-dot">💜</div><div class="step-line"></div></div><div class="step-body"><div class="step-tag">STEP 5</div><h3>저장</h3></div></div>
+    </div>
+    <div class="info-card" style="margin-top:26px;">
+      <span class="ico">🕒</span>
+      <p>기록은 오래 걸리지 않습니다.<br /><strong>1분이면 충분해요.</strong></p>
+    </div>
+  </div>
+  <div class="page-num">— 3 —</div>
+</section>
+
+<!-- ════════ 4페이지 ════════ -->
+<section class="page">
+  <div class="page-inner">
+    <div class="page-head">
+      <div class="eyebrow">FEATURES</div>
+      <h2 class="section-title">🌙 하루결 기능</h2>
+      <p class="section-sub">필요한 만큼만, 조용히 곁을 지키는 기능들이에요.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="ico">📖</div><div><h3>감정 기록</h3><p>오늘의 마음을 한 줄로</p></div></div>
+      <div class="feat-card"><div class="ico">📅</div><div><h3>감정 달력</h3><p>한 달의 결을 한눈에</p></div></div>
+      <div class="feat-card"><div class="ico">📊</div><div><h3>월간 회고</h3><p>지난 시간을 차분히</p></div></div>
+      <div class="feat-card"><div class="ico">🔍</div><div><h3>검색</h3><p>그날의 기록을 다시</p></div></div>
+      <div class="feat-card"><div class="ico">📄</div><div><h3>PDF 리포트</h3><p>진료실에서 함께 보도록</p></div></div>
+      <div class="feat-card"><div class="ico">🔒</div><div><h3>PIN 잠금</h3><p>나만의 기록은 안전하게</p></div></div>
+    </div>
+    <div class="mini-grid">
+      <div class="mini-card"><span class="ico">📖</span><h4>감정 기록</h4><p>감정은 언제나<br />하나가 아닐 수 있어요.</p></div>
+      <div class="mini-card"><span class="ico">📅</span><h4>감정 달력</h4><p>시간이 지나면 마음의<br />흐름이 보이기 시작해요.</p></div>
+      <div class="mini-card"><span class="ico">📊</span><h4>월간 회고</h4><p>지나온 한 달을<br />천천히 돌아보세요.</p></div>
+    </div>
+  </div>
+  <div class="page-num">— 4 —</div>
+</section>
+
+<!-- ════════ 5페이지 ════════ -->
+<section class="page">
+  <div class="page-inner">
+    <div class="page-head">
+      <div class="eyebrow">SCREENS</div>
+      <h2 class="section-title">📱 실제 화면</h2>
+      <p class="section-sub">하루결을 처음 열었을 때 만나는 화면이에요.</p>
+    </div>
+    <div class="screen-grid">
+      <div class="screen"><div class="screen-frame"><span>🏠</span></div><div class="screen-label">홈 화면</div></div>
+      <div class="screen"><div class="screen-frame"><span>✍️</span></div><div class="screen-label">기록 화면</div></div>
+      <div class="screen"><div class="screen-frame"><span>📅</span></div><div class="screen-label">달력 화면</div></div>
+    </div>
+    <p class="screen-note">* 실제 캡처 이미지는 추후 이 자리에 들어갑니다.</p>
+    <div class="info-card" style="margin-top:30px;">
+      <span class="ico">🌙</span>
+      <p>화면은 단순하게, 마음은 편안하게.<br />처음 켜는 순간부터 어렵지 않도록 만들었어요.</p>
+    </div>
+  </div>
+  <div class="page-num">— 5 —</div>
+</section>
+
+<!-- ════════ 6페이지 ════════ -->
+<section class="page">
+  <div class="page-inner">
+    <div class="page-head">
+      <div class="eyebrow">FAQ</div>
+      <h2 class="section-title">❓ 자주 묻는 질문</h2>
+      <p class="section-sub">가장 많이 받은 질문들을 모았어요.</p>
+    </div>
+    <div class="faq-card"><div class="faq-q">Q. 개인정보를 수집하나요?</div><div class="faq-a"><strong>아니요.</strong> 기록은 기기에 저장되며 외부 서버로 전송되지 않습니다.</div></div>
+    <div class="faq-card"><div class="faq-q">Q. 인터넷 없이 사용할 수 있나요?</div><div class="faq-a"><strong>네.</strong> 기본 기능은 오프라인에서도 사용할 수 있습니다.</div></div>
+    <div class="faq-card"><div class="faq-q">Q. 기기를 변경하면?</div><div class="faq-a">백업 기능을 통해 복원할 수 있습니다.</div></div>
+    <div class="chip-row">
+      <div class="chip"><span class="ico">🔒</span><p>개인정보는 외부 서버로 전송되지 않습니다.</p></div>
+      <div class="chip"><span class="ico">🌙</span><p>기록은 기기에 저장됩니다.</p></div>
+    </div>
+  </div>
+  <div class="page-num">— 6 —</div>
+</section>
+
+<!-- ════════ 7페이지 ════════ -->
+<section class="page">
+  <div class="page-inner">
+    <div class="page-head">
+      <div class="eyebrow">TIPS</div>
+      <h2 class="section-title">🌱 사용 팁</h2>
+      <p class="section-sub">애쓰지 않아도 되는, 작은 약속들이에요.</p>
+    </div>
+    <div class="tip"><div class="chk">✓</div><p>하루를 모두 기억하려고 애쓰지 않아도 괜찮아요.</p></div>
+    <div class="tip"><div class="chk">✓</div><p>한 줄만 남겨도 충분해요.</p></div>
+    <div class="tip"><div class="chk">✓</div><p>감정이 여러 개여도 괜찮아요.</p></div>
+    <div class="tip"><div class="chk">✓</div><p>기록하지 못한 날이 있어도 괜찮아요.</p></div>
+    <div class="habit">
+      <h3>하루결 사용 습관</h3>
+      <div class="habit-row">
+        <div class="habit-item"><div class="habit-dot"></div><span>아침</span></div>
+        <div class="habit-item"><div class="habit-dot"></div><span>점심</span></div>
+        <div class="habit-item"><div class="habit-dot"></div><span>저녁</span></div>
+        <div class="habit-item"><div class="habit-dot"></div><span>잠들기 전</span></div>
+      </div>
+      <p class="habit-note">언제든 괜찮아요.</p>
+    </div>
+  </div>
+  <div class="page-num">— 7 —</div>
+</section>
+
+<!-- ════════ 8페이지 ════════ -->
+<section class="page">
+  <div class="page-inner">
+    <div class="page-head">
+      <div class="eyebrow">NOTICE</div>
+      <h2 class="section-title">⚠ 안내사항</h2>
+      <p class="section-sub">하루결을 안심하고 사용하시도록 알려드려요.</p>
+    </div>
+    <div class="notice-card">
+      <div class="notice-ico">🕊️</div>
+      <h3>하루결은 치료나 진단을 대신하지 않습니다.</h3>
+      <p>응급 상황에서는 아래의 도움을 받아주세요.</p>
+      <div class="notice-list">
+        <span class="notice-pill">가까운 사람</span>
+        <span class="notice-pill">주변 사람</span>
+        <span class="notice-pill">전문기관</span>
+      </div>
+    </div>
+    <div class="notice-foot">
+      <span class="m">🌙</span>
+      당신의 하루가 조금 더 편안해지길 바랍니다.
+    </div>
+  </div>
+  <div class="page-num">— 8 —</div>
+</section>
+
+<!-- ════════ 9페이지 · 제작 이야기 ════════ -->
+<section class="page story">
+  <div class="page-inner">
+    <div class="page-head">
+      <div class="eyebrow">OUR STORY</div>
+      <h2 class="section-title">왜 하루결을 만들었나요?</h2>
+      <p class="section-sub">하루결이 시작된 작은 마음에 대하여.</p>
+    </div>
+    <div class="story-card">
+      <p class="first">과거의 저는 감정을 설명하기 어려웠습니다.</p>
+      <p>병원에 가도 무슨 일이 있었는지, 어떤 기분이었는지 기억하지 못하는 날이 많았습니다.</p>
+      <p>그래서 완벽하지 않아도 괜찮은 기록 공간이 있었으면 좋겠다고 생각했습니다.</p>
+      <p>하루결은 그런 마음에서 시작되었습니다.</p>
+      <div class="story-divider"></div>
+      <div class="story-quote">
+        <span class="m">🌙</span>
+        기억하지 못한 감정을 기록으로.
+      </div>
+    </div>
+  </div>
+  <div class="page-num">— 9 —</div>
+</section>
+
+<!-- ════════ 10페이지 · 감사 ════════ -->
+<section class="page closing">
+  <div class="stars">
+    <span class="star c1">✦</span><span class="star c2">✶</span>
+    <span class="star c3">✦</span><span class="star c4">✶</span>
+  </div>
+  <div class="page-inner">
+    <div class="closing-moon">🌙</div>
+    <h2 class="closing-title">완벽하게 기억하지 않아도<br />괜찮아요.</h2>
+    <div class="closing-rule"></div>
+    <div class="closing-body">
+      오늘 하루도 수고 많았어요.<br />
+      하루결을 찾아주셔서 감사합니다.
+      <span class="em">천천히, 생각나는 만큼만 남겨보세요.</span>
+    </div>
+    <div class="closing-brand"><span class="m">🌙</span> 하루결</div>
+    <div class="closing-sign">기 억 하 지 못 한 감 정 을 기 록 으 로</div>
+  </div>
+</section>
+
+</body>
+</html>
