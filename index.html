@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-title" content="하루결" />
   <meta name="mobile-web-app-capable" content="yes" />
   <!-- iOS 홈 화면 아이콘 (하루결: 라벤더 배경·크림 초승달·핑크 별 / 추후 PNG 교체 가능) -->
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' rx='40' fill='%238B7CF6'/%3E%3Cpath d='M113 52a53 53 0 1 0 0 76 41 41 0 0 1 0-76z' fill='%23FFF7E8'/%3E%3Ccircle cx='126' cy='60' r='7' fill='%23FFB8D1'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='180' height='180'%3E%3Crect width='512' height='512' rx='115' fill='%238B7CF6'/%3E%3Cpath d='M300 132a128 128 0 1 0 0 248 100 100 0 0 1 0-248z' fill='%23FFF7E8'/%3E%3Cpath d='M356 150l8.5 19 19 8.5-19 8.5-8.5 19-8.5-19-19-8.5 19-8.5z' fill='%23FFB8D1'/%3E%3C/svg%3E" />
   <!-- manifest는 JS(initPWA)에서 Blob으로 동적 주입 (단일 HTML 유지 목적) -->
   <!-- Chart.js (감정 변화 그래프용 · 2번). 로드 실패 시 JS에서 안내 폴백 -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -46,7 +46,7 @@
       --risk-yellow: #CA8A04;
       --risk-orange: #EA580C;
       --risk-red:    #DC2626;
-      --radius: 14px;
+      --radius: 16px;
       --font: -apple-system, 'Apple SD Gothic Neo', 'Pretendard Variable', Pretendard,
               BlinkMacSystemFont, 'Noto Sans KR', sans-serif;
     }
@@ -458,18 +458,24 @@
     /* 날짜 칸 */
     .cal-cell {
       width: calc(100% / 7); text-align: center;
-      padding: 4px 2px 6px; vertical-align: top;
-      border-radius: 10px; cursor: pointer;
-      transition: box-shadow .15s; position: relative;
+      padding: 5px 2px 7px; vertical-align: top;
+      border-radius: 12px; cursor: pointer;
+      transition: box-shadow .15s, background .15s; position: relative;
       -webkit-tap-highlight-color: transparent;
     }
     .cal-cell.empty { cursor: default; }
 
-    /* 위험도별 배경 */
-    .cal-cell.has-record.risk-green  { background: #D1FAE5; }
-    .cal-cell.has-record.risk-yellow { background: #FEF9C3; }
-    .cal-cell.has-record.risk-orange { background: #FFEDD5; }
-    .cal-cell.has-record.risk-red    { background: #FEE2E2; }
+    /* 감정 색상 기반 셀 배경 (Daylio 느낌) — 대표 감정의 --emo를 옅게 사용 */
+    .cal-cell.has-record { background: var(--accent-soft); } /* color-mix 미지원 폴백 */
+    .cal-cell.has-record { background: color-mix(in srgb, var(--cell-emo, var(--accent)) 16%, transparent); }
+
+    /* 위험도는 우측 상단 작은 점으로만 표시 (감정 색과 충돌 방지) */
+    .cal-risk-dot {
+      position: absolute; top: 5px; right: 5px;
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .cal-risk-dot.orange { background: var(--risk-orange); }
+    .cal-risk-dot.red    { background: var(--risk-red); }
 
     /* 선택된 날짜 */
     .cal-cell.selected {
@@ -496,6 +502,13 @@
     .cal-rec-cnt {
       font-size: 10px; font-weight: 700; color: var(--muted);
       display: block; line-height: 1.2;
+    }
+    /* 대표 감정 이모지 + 감정 색상 점 */
+    .cal-emoji { font-size: 16px; display: block; line-height: 1.25; position: relative; }
+    .cal-emoji[class*="emo-c-"]::after {
+      content: ''; display: block; width: 16px; height: 3px;
+      border-radius: 999px; background: var(--emo, var(--accent));
+      margin: 2px auto 0; opacity: .9;
     }
     /* 위험도 점 */
     .cal-dot {
@@ -1362,16 +1375,46 @@
     /* ===== 🏠 홈 ===== */
     .home-brand {
       display: flex; flex-direction: column; align-items: center;
-      text-align: center; gap: 2px;
-      margin: 8px 0 22px; padding: 22px 16px 24px;
-      background: linear-gradient(180deg, var(--accent-soft) 0%, transparent 100%);
-      border-radius: 20px;
+      text-align: center; gap: 0;
+      margin: 18px 0 24px; padding: 30px 16px 26px;
+      background: linear-gradient(180deg, var(--accent-soft) 0%, transparent 92%);
+      border-radius: 22px;
     }
-    .home-brand-mark { display: flex; align-items: center; gap: 2px; margin-bottom: 8px; line-height: 1; }
-    .home-brand-star { font-size: 14px; opacity: .85; transform: translateY(-6px); }
-    .home-brand-moon { font-size: 30px; }
-    .home-brand-name { font-size: 21px; font-weight: 800; color: var(--accent); letter-spacing: 0.04em; }
-    .home-brand-sub { font-size: 12px; color: var(--muted); margin-top: 3px; letter-spacing: 0.01em; }
+    .home-brand-mark { display: flex; align-items: flex-start; justify-content: center; gap: 3px; margin-bottom: 12px; line-height: 1; }
+    .home-brand-star { font-size: 15px; opacity: .8; transform: translateY(2px); }
+    .home-brand-moon { font-size: 34px; }
+    .home-brand-name { font-size: 23px; font-weight: 800; color: var(--accent); letter-spacing: 0.06em; }
+    .home-brand-sub { font-size: 12px; color: var(--muted); margin-top: 6px; letter-spacing: 0.02em; font-weight: 500; }
+
+    /* 오늘의 안내 카드 */
+    .home-invite-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 26px 22px 22px;
+      text-align: center; margin-bottom: 16px;
+    }
+    .home-invite-title { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
+    .home-invite-text { font-size: 13px; color: var(--muted); line-height: 1.75; margin-top: 12px; }
+    .home-cta {
+      width: 100%; height: 52px; margin-top: 22px; padding: 0 20px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 999px; font-family: var(--font);
+      font-size: 15.5px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .08s, opacity .15s;
+    }
+    .home-cta:active { transform: scale(.98); opacity: .92; }
+    .home-cta-row { display: flex; gap: 10px; margin-top: 10px; }
+    .home-cta-sub {
+      flex: 1; height: 44px; padding: 0 10px;
+      background: var(--accent-soft); color: var(--accent); border: none;
+      border-radius: 999px; font-family: var(--font);
+      font-size: 13.5px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent; transition: transform .08s;
+    }
+    .home-cta-sub:active { transform: scale(.97); }
+
     .home-greeting { margin-bottom: 18px; }
     .home-hello { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
     .home-date { font-size: 13px; color: var(--muted); margin-top: 4px; }
@@ -1427,7 +1470,7 @@
     .home-quote-mark { font-size: 40px; color: var(--accent); opacity: .35; position: absolute; top: -2px; left: 12px; font-weight: 800; }
     .home-quote-text { font-size: 14px; color: var(--text); font-weight: 500; line-height: 1.5; padding-left: 30px; font-style: italic; }
 
-    .home-section-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+    .home-section-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 22px 0 12px 2px; }
     .home-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 24px 0; background: var(--surface); border-radius: 18px; }
 
     /* ===== 📝 기록 Hero (Apple 건강 앱 느낌) ===== */
@@ -1651,7 +1694,37 @@
       text-transform: none; padding-left: 2px;
     }
     .acc-group-title.first { margin-top: 8px; }
-    /* 섹션 제목 톤 (과한 대문자/자간 완화) */
+
+    /* 🌙 월간 회고 (V18) */
+    .mr-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 18px 16px; margin-bottom: 4px;
+    }
+    .mr-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .mr-nav-title { font-size: 16px; font-weight: 800; color: var(--text); }
+    .mr-nav-btn {
+      width: 32px; height: 32px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--accent); font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;
+    }
+    .mr-nav-btn.disabled { opacity: .3; pointer-events: none; }
+    .mr-section-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .mr-emo-list { margin-bottom: 16px; }
+    .mr-emo-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+    .mr-emo-row:last-child { border-bottom: none; }
+    .mr-emo-row.mr-muted { color: var(--muted); font-size: 13px; }
+    .mr-medal { font-size: 16px; width: 22px; text-align: center; }
+    .mr-emo-emoji { font-size: 18px; }
+    .mr-emo-name { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+    .mr-emo-cnt { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .mr-stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .mr-stat {
+      background: var(--surface2); border-radius: 12px; padding: 12px 14px; text-align: center;
+    }
+    .mr-stat-label { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+    .mr-stat-val { font-size: 19px; font-weight: 800; color: var(--accent); }
+    .mr-foot { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 16px; line-height: 1.6; }
+    .mr-empty { font-size: 13.5px; color: var(--muted); text-align: center; line-height: 1.8; padding: 18px 0; }
     .section-title {
       font-size: 14px; font-weight: 700; color: var(--text);
       letter-spacing: -0.01em; text-transform: none; margin-bottom: 13px;
@@ -1847,31 +1920,25 @@
     <div class="home-brand-sub" id="home-brand-sub"></div>
   </div>
 
-  <div class="home-greeting">
-    <div class="home-hello" id="home-hello">오늘 하루는 어땠나요?</div>
-    <div class="home-date" id="home-date"><!-- JS로 생성 --></div>
-  </div>
-
   <!-- 위험도 경고 배너 (필요 시 JS가 표시) -->
   <div id="home-risk-banner"></div>
+
+  <!-- 오늘의 안내 카드 -->
+  <div class="home-invite-card">
+    <div class="home-invite-title">오늘 하루는 어땠나요?</div>
+    <div class="home-invite-text">완벽하게 기록하지 않아도 괜찮아요.<br>생각나는 만큼 천천히 남겨보세요.</div>
+    <button class="home-cta" onclick="goToRecordTab()">기록 시작하기</button>
+    <div class="home-cta-row">
+      <button class="home-cta-sub" onclick="switchTab('list')">최근 기록 보기</button>
+      <button class="home-cta-sub" onclick="switchTab('summary')">분석 보기</button>
+    </div>
+  </div>
 
   <!-- 오늘의 기록 상태 -->
   <div id="home-today-status"><!-- JS로 생성 --></div>
 
-  <!-- 바로 기록하기 버튼 -->
-  <button class="home-record-btn" onclick="goToRecordTab()">
-    <span class="home-record-btn-icon">✏️</span>
-    <span>오늘의 감정 기록하기</span>
-  </button>
-
-  <!-- 연속 기록 + 오늘의 한마디 -->
-  <div class="home-row">
-    <div class="home-streak-card" id="home-streak"><!-- JS로 생성 --></div>
-  </div>
+  <!-- 오늘의 한마디 -->
   <div class="home-quote-card" id="home-quote"><!-- JS로 생성 --></div>
-
-  <!-- 오늘의 질문 (V11) -->
-  <div class="home-question-card" id="home-question"><!-- JS로 생성 --></div>
 
   <!-- 최근 기록 3개 -->
   <div class="home-section-title">최근 기록</div>
@@ -2103,7 +2170,7 @@
   </div>
 
   <input type="text" class="search-input" id="list-search-input"
-    placeholder="🔍 메모·감정·원인 검색" oninput="onListSearchInput()">
+    placeholder="🔍 감정·원인·메모·충동·키워드 검색" oninput="onListSearchInput()">
 
   <div class="filter-section-label">위험도</div>
   <div class="filter-row" id="filter-risk-row"><!-- JS로 생성 --></div>
@@ -2129,8 +2196,10 @@
   <!-- 🗓 이번 주 감정 점수 (주간 리포트 카드 · 최상단) -->
   <div id="weekly-report"><!-- JS로 생성 --></div>
 
-  <!-- 🩺 진료 준비 (V11) -->
-  <div class="acc-group-title first">진료 준비</div>
+  <!-- 🌙 월간 회고 (V18) -->
+  <div class="acc-group-title first">월간 회고</div>
+  <div id="monthly-review"><!-- JS로 생성 --></div>
+
   <div class="acc-item" id="clinic-report-acc">
     <button class="acc-header" onclick="toggleAccordion(this)">
       <span>🩺 진료 리포트 (최근 30일)</span><span class="acc-arrow">›</span>
@@ -2666,6 +2735,12 @@ const EMOTION_META = {
   '모르겠음': { c: 'emo-c-gray', e: '🤔' },
 };
 function emotionColorClass(name) { return (EMOTION_META[name] && EMOTION_META[name].c) || 'emo-c-gray'; }
+const EMO_HEX = {
+  'emo-c-yellow': '#EAB308', 'emo-c-blue': '#3B82F6', 'emo-c-red': '#EF4444',
+  'emo-c-purple': '#8B5CF6', 'emo-c-gray': '#9CA3AF', 'emo-c-green': '#22C55E',
+  'emo-c-teal': '#14B8A6', 'emo-c-pink': '#EC4899', 'emo-c-orange': '#F97316',
+};
+function emotionHex(name) { return EMO_HEX[emotionColorClass(name)] || '#9CA3AF'; }
 function emotionEmoji(name) { return (EMOTION_META[name] && EMOTION_META[name].e) || '•'; }
 
 // 감정 강도: 1~10
@@ -3701,7 +3776,18 @@ function filterRecords(records) {
   const q = listFilter.search.trim().toLowerCase();
   if (q) {
     result = result.filter(r => {
-      const hay = [...(r.emotions || []), ...(r.causes || []), r.memo || ''].join(' ').toLowerCase();
+      const impulse = r.impulseDetail || {};
+      const impulseTexts = [
+        impulse.memo || '', impulse.other || '',
+        ...((impulse.types || []).map(id => (IMPULSE_TYPE_MAP[id] || {}).label || ''))
+      ];
+      const hay = [
+        ...(r.emotions || []),
+        ...(r.causes || []),
+        r.memo || '', r.retro || '',
+        ...(r.takenMeds || []),
+        ...impulseTexts,
+      ].join(' ').toLowerCase();
       return hay.includes(q);
     });
   }
@@ -4016,12 +4102,10 @@ let selectedDateYMD = getLocalYMD(new Date());
    🏠 홈 탭 로더
    ===================================================== */
 function loadHome() {
-  renderHomeDate();
+  applyBranding();
   renderHomeRiskBanner();
   renderHomeTodayStatus();
-  renderHomeStreak();
   renderHomeQuote();
-  renderHomeQuestion();
   renderHomeRecent();
 }
 
@@ -4135,18 +4219,17 @@ function renderHomeQuote() {
   const el = document.getElementById('home-quote');
   if (!el) return;
   const QUOTES = [
-    '오늘의 감정도 소중한 기록이에요.',
-    '지금의 나를 알아가는 과정이에요.',
-    '작은 기록이 큰 변화를 만들어요.',
-    '감정을 들여다본 것만으로 한 걸음이에요.',
-    '충분히 잘하고 있어요.',
+    '오늘 하루도 수고 많았어요.',
+    '천천히 기록해도 괜찮아요.',
+    '완벽하게 기억하지 않아도 괜찮아요.',
+    '생각나는 만큼만 남겨보세요.',
+    '지금의 감정도 충분히 소중해요.',
     '흔들려도 괜찮아요, 지나가고 있어요.',
     '나를 돌보는 시간을 가져요.',
   ];
-  // 날짜 기반 고정(하루 동안 같은 문구)
-  const seed = new Date().getDate() % QUOTES.length;
+  const pick = QUOTES[Math.floor(Math.random() * QUOTES.length)];
   el.innerHTML = `<div class="home-quote-mark">“</div>
-    <div class="home-quote-text">${QUOTES[seed]}</div>`;
+    <div class="home-quote-text">${pick}</div>`;
 }
 
 /* 오늘의 질문 (V11) — 랜덤 자기 성찰 질문 */
@@ -4404,7 +4487,85 @@ function loadSummary() {
   renderRetroList();       // 월별 한 줄 회고 (6번)
   renderSummaryHero();     // ⭐ 핵심 요약 카드 (UI 표시용)
   renderWeeklyReport();    // 🗓 이번 주 감정 점수 카드
+  renderMonthlyReview();   // 🌙 월간 회고 (V18)
   // 캘린더는 별도 '캘린더' 탭으로 분리됨 (loadCalendar)
+}
+
+/* =====================================================
+   🌙 월간 회고 (V18) — 한 달을 따뜻하게 돌아보는 카드
+   ===================================================== */
+let monthlyReviewYM = null; // 'YYYY-MM' (null이면 이번 달)
+function shiftMonthlyReview(delta) {
+  const base = monthlyReviewYM ? new Date(monthlyReviewYM + '-01') : new Date();
+  base.setMonth(base.getMonth() + delta);
+  const now = new Date();
+  // 미래 달로는 이동 금지
+  if (base.getFullYear() > now.getFullYear() ||
+     (base.getFullYear() === now.getFullYear() && base.getMonth() > now.getMonth())) return;
+  monthlyReviewYM = `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}`;
+  renderMonthlyReview();
+}
+function renderMonthlyReview() {
+  const wrap = document.getElementById('monthly-review');
+  if (!wrap) return;
+
+  const now = new Date();
+  const ym = monthlyReviewYM || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const [yy, mm] = ym.split('-').map(Number);
+  const isThisMonth = (yy === now.getFullYear() && mm === (now.getMonth()+1));
+
+  const recs = getRecords().filter(r => r.createdAt && getLocalYMD(new Date(r.createdAt)).startsWith(ym));
+
+  const navHtml = `<div class="mr-nav">
+      <button class="mr-nav-btn" onclick="shiftMonthlyReview(-1)" aria-label="이전 달">‹</button>
+      <div class="mr-nav-title">${yy}년 ${mm}월</div>
+      <button class="mr-nav-btn ${isThisMonth ? 'disabled' : ''}" onclick="shiftMonthlyReview(1)" aria-label="다음 달">›</button>
+    </div>`;
+
+  if (recs.length === 0) {
+    wrap.innerHTML = `<div class="mr-card">${navHtml}
+      <div class="mr-empty">이 달엔 아직 남긴 기록이 없어요.<br>천천히, 생각날 때 들러주세요.</div>
+    </div>`;
+    return;
+  }
+
+  // 감정 빈도 TOP3
+  const cnt = {};
+  recs.forEach(r => (r.emotions || []).forEach(e => cnt[e] = (cnt[e]||0)+1));
+  const top = Object.entries(cnt).sort((a,b) => b[1]-a[1]).slice(0,3);
+  const medals = ['🥇','🥈','🥉'];
+  const topHtml = top.length
+    ? top.map((t,i) => `<div class="mr-emo-row">
+        <span class="mr-medal">${medals[i]}</span>
+        <span class="mr-emo-emoji">${emotionEmoji(t[0])}</span>
+        <span class="mr-emo-name">${escapeHtml(t[0])}</span>
+        <span class="mr-emo-cnt">${t[1]}회</span>
+      </div>`).join('')
+    : `<div class="mr-emo-row mr-muted">감정 기록이 없어요</div>`;
+
+  // 평균 수면
+  const sleeps = recs.map(r => r.sleepHour).filter(v => typeof v === 'number' && !isNaN(v));
+  const avgSleep = sleeps.length ? (sleeps.reduce((a,b)=>a+b,0)/sleeps.length) : null;
+  // 약 복용률
+  const medRecs = recs.filter(r => r.medication === 'taken' || r.medication === 'missed');
+  const medTaken = recs.filter(r => r.medication === 'taken').length;
+  const medRate = medRecs.length ? Math.round(medTaken / medRecs.length * 100) : null;
+  // 위험 기록 수 (orange 이상)
+  const riskCnt = recs.filter(r => (RISK_ORDER[r.riskLevel] ?? 0) >= 2).length;
+
+  const statHtml = `<div class="mr-stat-grid">
+      <div class="mr-stat"><div class="mr-stat-label">평균 수면</div><div class="mr-stat-val">${avgSleep!=null ? avgSleep.toFixed(1)+'h' : '–'}</div></div>
+      <div class="mr-stat"><div class="mr-stat-label">약 복용률</div><div class="mr-stat-val">${medRate!=null ? medRate+'%' : '–'}</div></div>
+      <div class="mr-stat"><div class="mr-stat-label">위험 기록</div><div class="mr-stat-val">${riskCnt}회</div></div>
+      <div class="mr-stat"><div class="mr-stat-label">총 기록</div><div class="mr-stat-val">${recs.length}개</div></div>
+    </div>`;
+
+  wrap.innerHTML = `<div class="mr-card">${navHtml}
+    <div class="mr-section-label">이 달 가장 많았던 감정</div>
+    <div class="mr-emo-list">${topHtml}</div>
+    ${statHtml}
+    <div class="mr-foot">이번 달도 잘 지나왔어요. 천천히 돌아봐요. 🌙</div>
+  </div>`;
 }
 
 /* =====================================================
@@ -4690,26 +4851,35 @@ function renderCalendar() {
     const isToday    = ymd === todayYMD;
     const isSelected = ymd === selectedDateYMD;
 
-    // 클래스 조합
+    // 클래스 조합 (위험도 배경 클래스 제거 — 감정 색이 셀 배경을 담당)
     let cls = 'cal-cell';
     if (dow === 0) cls += ' sun';
     if (dow === 6) cls += ' sat';
-    if (info)      cls += ` has-record risk-${info.maxRisk}`;
+    if (info)      cls += ' has-record';
     if (isSelected) cls += ' selected';
+
+    // 셀 배경에 쓸 대표 감정 색 (인라인 변수)
+    const cellStyle = info && info.topEmo
+      ? ` style="--cell-emo:${emotionHex(info.topEmo)}"` : '';
 
     // 날짜 숫자 (오늘이면 동그라미)
     const numHtml = isToday
       ? `<span class="cal-day-num"><span class="today-mark">${date}</span></span>`
       : `<span class="cal-day-num">${date}</span>`;
 
-    // 기록 개수 + 대표 감정 이모지 (위험도는 셀 배경색으로 표현)
+    // 위험도(주의 이상)만 우측 상단 점으로
+    const riskDot = info && (info.maxRisk === 'orange' || info.maxRisk === 'red')
+      ? `<span class="cal-risk-dot ${info.maxRisk}"></span>` : '';
+
+    // 대표 감정 이모지 + 감정 색상 바 + 기록 개수
+    const emoVar = info && info.topEmo ? emotionColorClass(info.topEmo) : '';
     const infoHtml = info
-      ? `<span class="cal-emoji">${info.topEmo ? emotionEmoji(info.topEmo) : '·'}</span>
+      ? `<span class="cal-emoji ${emoVar}">${info.topEmo ? emotionEmoji(info.topEmo) : '·'}</span>
          <span class="cal-rec-cnt">${info.count}</span>`
       : '';
 
-    html += `<td class="${cls}" onclick="selectSummaryDate('${ymd}')">
-      ${numHtml}${infoHtml}
+    html += `<td class="${cls}"${cellStyle} onclick="selectSummaryDate('${ymd}')">
+      ${riskDot}${numHtml}${infoHtml}
     </td>`;
 
     // 토요일 줄바꿈
@@ -6550,8 +6720,7 @@ function exportPDFReport() {
   document.body.appendChild(reportEl);
 
   setTimeout(() => {
-    const isDark = document.documentElement.classList.contains('dark-mode');
-    html2canvas(reportEl, { scale: 2, backgroundColor: isDark ? '#14121E' : '#F6F3FB', useCORS: true, windowWidth: 720 })
+    html2canvas(reportEl, { scale: 2, backgroundColor: '#F8F7FF', useCORS: true, windowWidth: 720 })
       .then(canvas => {
         const { jsPDF } = jsPDFns;
         const pdf = new jsPDF('p', 'mm', 'a4');
@@ -6603,21 +6772,35 @@ function buildReportDOM() {
   const sortedImp = Object.entries(impCnt).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const riskTotal = Object.values(riskCnt).reduce((a, b) => a + b, 0) || 1;
 
+  // 수면·약 집계
+  const sleeps = recs.map(r => r.sleepHour).filter(v => typeof v === 'number' && !isNaN(v));
+  const avgSleep = sleeps.length ? (sleeps.reduce((a,b)=>a+b,0)/sleeps.length).toFixed(1) : '—';
+  const medRecs = recs.filter(r => r.medication === 'taken' || r.medication === 'missed');
+  const medTaken = recs.filter(r => r.medication === 'taken').length;
+  const medRate = medRecs.length ? Math.round(medTaken / medRecs.length * 100) : null;
+  const highRiskCnt = (riskCnt.orange || 0) + (riskCnt.red || 0);
+
+  // 최근 메모 (최신 5개)
+  const recentMemos = [...recs]
+    .filter(r => (r.memo && r.memo.trim()) || (r.retro && r.retro.trim()))
+    .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+
   const ENC = ['이번 달도 꾸준히 나를 기록했어요.', '감정을 들여다본 시간이 쌓이고 있어요.', '스스로를 돌본 한 달이었어요.'];
   const enc = ENC[now.getDate() % ENC.length];
 
-  const isDark = document.documentElement.classList.contains('dark-mode');
-  const bg = isDark ? '#14121E' : '#F6F3FB', card = isDark ? '#1F1B2E' : '#FFFFFF';
-  const text = isDark ? '#ECE9F5' : '#2A2440', muted = isDark ? '#9B95B5' : '#8A82A8';
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#8B7CF6';
-  const border = isDark ? '#2E2842' : '#ECE8F5';
+  // 하루결 브랜드 팔레트 (진료용 — 다크모드와 무관하게 항상 밝고 차분하게)
+  const bg = '#F8F7FF', card = '#FFFFFF';
+  const text = '#4D426D', muted = '#9089AE';
+  const accent = '#8B7CF6', accentSub = '#CDBDFF', point = '#FFB8D1';
+  const border = '#E6E1F7';
   const RC = { green:'#16A34A', yellow:'#CA8A04', orange:'#EA580C', red:'#DC2626' };
   const RL = { green:'안전', yellow:'주의', orange:'경고', red:'위험' };
 
   const bar = (label, count, max, color) => `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
       <span style="width:130px;font-size:13px;color:${text};">${label}</span>
-      <span style="flex:1;height:18px;background:${border};border-radius:6px;overflow:hidden;">
+      <span style="flex:1;height:18px;background:${bg};border-radius:6px;overflow:hidden;">
         <span style="display:block;height:100%;width:${Math.round(count / max * 100)}%;background:${color};border-radius:6px;"></span>
       </span>
       <span style="width:42px;text-align:right;font-size:12px;color:${muted};">${count}회</span>
@@ -6629,46 +6812,81 @@ function buildReportDOM() {
       ${inner}
     </div>`;
 
+  const miniStat = (label, val, sub) => `
+    <div style="flex:1;background:${card};border:1px solid ${border};border-radius:16px;padding:16px;text-align:center;">
+      <div style="font-size:12px;color:${muted};margin-bottom:6px;">${label}</div>
+      <div style="font-size:21px;font-weight:800;color:${accent};">${val}<span style="font-size:13px;color:${muted};">${sub||''}</span></div>
+    </div>`;
+
   const maxCause = sortedCause.length ? sortedCause[0][1] : 1;
   const maxImp = sortedImp.length ? sortedImp[0][1] : 1;
 
   const el = document.createElement('div');
-  el.style.cssText = `position:fixed;left:-9999px;top:0;width:720px;background:${bg};padding:36px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;`;
+  el.style.cssText = `position:fixed;left:-9999px;top:0;width:720px;background:${bg};padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo',sans-serif;`;
   el.innerHTML = `
-    <div style="text-align:center;margin-bottom:26px;">
-      <div style="font-size:26px;font-weight:800;color:${text};letter-spacing:-0.02em;">월간 감정 리포트</div>
-      <div style="font-size:14px;color:${muted};margin-top:6px;">${now.getFullYear()}년 ${now.getMonth() + 1}월 · 기록 ${recs.length}회</div>
+    <!-- 표지 -->
+    <div style="background:linear-gradient(160deg,${accent} 0%,${accentSub} 100%);padding:44px 36px 38px;color:#fff;border-radius:0 0 24px 24px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
+        <span style="font-size:13px;opacity:.9;">✨</span>
+        <span style="font-size:26px;">🌙</span>
+        <span style="font-size:18px;font-weight:800;letter-spacing:0.04em;">${APP_NAME}</span>
+      </div>
+      <div style="font-size:27px;font-weight:800;letter-spacing:-0.02em;">감정 기록 리포트</div>
+      <div style="font-size:14px;opacity:.92;margin-top:8px;">${now.getFullYear()}년 ${now.getMonth() + 1}월 · 총 ${recs.length}회 기록</div>
+      <div style="font-size:12px;opacity:.82;margin-top:4px;">진료 시 참고용 · 생성일 ${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}</div>
     </div>
 
-    <div style="display:flex;gap:14px;margin-bottom:14px;">
-      <div style="flex:1;background:${card};border:1px solid ${border};border-radius:16px;padding:18px;text-align:center;">
-        <div style="font-size:13px;color:${muted};margin-bottom:8px;">대표 감정</div>
-        <div style="font-size:22px;font-weight:800;color:${accent};">${topEmoText}</div>
-      </div>
-      <div style="flex:1;background:${card};border:1px solid ${border};border-radius:16px;padding:18px;text-align:center;">
-        <div style="font-size:13px;color:${muted};margin-bottom:8px;">평균 감정 강도</div>
-        <div style="font-size:22px;font-weight:800;color:${text};">${avgInt}<span style="font-size:14px;color:${muted};"> /10</span></div>
-      </div>
+    <div style="padding:28px 36px 36px;">
+    <!-- 핵심 요약 -->
+    <div style="display:flex;gap:12px;margin-bottom:14px;">
+      ${miniStat('대표 감정', topEmoText, '')}
+      ${miniStat('평균 감정 강도', avgInt, ' /10')}
     </div>
+    <div style="display:flex;gap:12px;margin-bottom:18px;">
+      ${miniStat('평균 수면', avgSleep, 'h')}
+      ${miniStat('약 복용률', medRate!=null ? medRate : '—', medRate!=null ? '%' : '')}
+      ${miniStat('위험 기록', highRiskCnt, '회')}
+    </div>
+
+    ${cardBox('감정 통계 · 자주 느낀 감정 TOP5', Object.entries(emoCnt).sort((a,b)=>b[1]-a[1]).slice(0,5).length
+      ? Object.entries(emoCnt).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,c]) => bar(`${emotionEmoji(n)} ${n}`, c, Object.entries(emoCnt).sort((a,b)=>b[1]-a[1])[0][1], accent)).join('')
+      : `<div style="font-size:13px;color:${muted};">기록이 충분하지 않습니다.</div>`)}
 
     ${cardBox('위험도 분포', Object.keys(riskCnt).map(k =>
       bar(RL[k], riskCnt[k], riskTotal, RC[k])).join(''))}
 
     ${cardBox('자주 나타난 원인 TOP5', sortedCause.length
-      ? sortedCause.map(([n, c]) => bar(n, c, maxCause, accent)).join('')
+      ? sortedCause.map(([n, c]) => bar(n, c, maxCause, accentSub)).join('')
       : `<div style="font-size:13px;color:${muted};">기록이 충분하지 않습니다.</div>`)}
 
     ${cardBox('⚡ 자주 나타난 충동 TOP5', sortedImp.length
-      ? sortedImp.map(([id, c]) => { const t = IMPULSE_TYPE_MAP[id] || { emoji:'•', label:id }; return bar(`${t.emoji} ${t.label}`, c, maxImp, '#E8743B'); }).join('')
+      ? sortedImp.map(([id, c]) => { const t = IMPULSE_TYPE_MAP[id] || { emoji:'•', label:id }; return bar(`${t.emoji} ${t.label}`, c, maxImp, point); }).join('')
       : `<div style="font-size:13px;color:${muted};">충동 기록이 충분하지 않습니다.</div>`)}
+
+    ${cardBox('수면 · 약 복용', `
+      <div style="font-size:13.5px;color:${text};line-height:1.8;">
+        이번 달 평균 수면은 <b>${avgSleep}시간</b>이에요.${medRate!=null ? ` 약은 기록된 날 기준 <b>${medRate}%</b> 복용했어요.` : ' 약 복용 기록은 아직 적어요.'}
+        ${highRiskCnt>0 ? ` 주의 이상 위험 기록이 <b>${highRiskCnt}회</b> 있었어요.` : ' 위험도는 대체로 안정적이었어요.'}
+      </div>`)}
 
     ${cardBox('패턴 분석', `<div style="font-size:13.5px;color:${text};line-height:1.7;">${buildReportPatternText(recs, topEmo, riskCnt)}</div>`)}
 
+    ${recentMemos.length ? cardBox('최근 메모', recentMemos.map(r => {
+      const d = new Date(r.createdAt);
+      const dstr = `${d.getMonth()+1}.${d.getDate()}`;
+      const txt = (r.memo && r.memo.trim()) || (r.retro && r.retro.trim()) || '';
+      return `<div style="padding:8px 0;border-bottom:1px solid ${border};font-size:13px;color:${text};line-height:1.6;">
+        <span style="color:${muted};font-weight:700;margin-right:8px;">${dstr}</span>${escapeHtml(txt)}</div>`;
+    }).join('')) : ''}
+
     <div style="background:${accent}1A;border-radius:16px;padding:20px;text-align:center;margin-top:6px;">
-      <div style="font-size:15px;color:${accent};font-weight:600;font-style:italic;">"${enc}"</div>
+      <div style="font-size:15px;color:${accent};font-weight:600;">"${enc}"</div>
     </div>
 
-    <div style="text-align:center;margin-top:22px;font-size:11px;color:${muted};">${APP_NAME} · 내 기기에 저장되는 감정 일기</div>`;
+    <div style="text-align:center;margin-top:22px;font-size:11px;color:${muted};line-height:1.6;">
+      ${APP_NAME} · ${APP_SUBTITLE}<br>본 기록은 진료 참고용이며, 의료 진단·치료를 대체하지 않습니다.
+    </div>
+    </div>`;
   return el;
 }
 
@@ -6712,11 +6930,12 @@ function initPWA() {
              ]
          ───────────────────────────────────────────── */
       const BRAND_ICON_BG = '#8B7CF6';
+      // 하루결 아이콘: 라벤더 배경 · 크림 초승달 · 핑크 별 (작게 보아도 선명한 단순 형태)
       const fallbackIconSvg =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">' +
-        '<rect width="512" height="512" rx="112" fill="' + BRAND_ICON_BG + '"/>' +
-        '<path d="M322 150a150 150 0 1 0 0 212 118 118 0 0 1 0-212z" fill="#FFF7E8"/>' +
-        '<circle cx="360" cy="170" r="20" fill="#FFB8D1"/>' +
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">' +
+        '<rect width="512" height="512" rx="115" fill="' + BRAND_ICON_BG + '"/>' +
+        '<path d="M300 132a128 128 0 1 0 0 248 100 100 0 0 1 0-248z" fill="#FFF7E8"/>' +
+        '<path d="M356 150l8.5 19 19 8.5-19 8.5-8.5 19-8.5-19-19-8.5 19-8.5z" fill="#FFB8D1"/>' +
         '</svg>';
       const fallbackIconUri = 'data:image/svg+xml,' + encodeURIComponent(fallbackIconSvg);
       const ICON_CONFIG = {
