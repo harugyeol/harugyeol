@@ -461,6 +461,11 @@
     .emo-summary-empty { font-size: 13px; color: var(--muted); }
     .record-summary-row .intensity-tag { margin-left: auto; }
     .record-memo-flag { font-size: var(--fs-meta); color: var(--muted); margin-top: 6px; }
+    /* V2.0 — 카드 원인·시간 라인 */
+    .record-cause-line { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+    .record-time-line { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: var(--fs-meta); color: var(--muted); }
+    .record-time-line .rt-memo { color: var(--muted); }
+    .record-time-line .rt-time { margin-left: auto; }
     .record-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
     .action-btn {
       background: none; border: 1px solid var(--border); border-radius: 999px;
@@ -1676,28 +1681,15 @@
     }
 
     /* ===== 단계형 입력 ===== */
-    .step-badge {
-      display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
-      color: var(--accent); background: var(--accent-soft); padding: 3px 9px;
-      border-radius: 999px; margin-bottom: 10px;
-    }
-    /* STEP2~5는 감정 선택 전 숨김 → steps-unlocked 시 부드럽게 등장 */
+    /* V2.0 — 'STEP' 뱃지·단계 안내 제거 (생산성 앱 느낌 제거) */
+    .step-badge, .step-hint { display: none !important; }
+    /* 상세 기록은 '상세 기록 펼치기'로만 제어 — 내부 단계 게이팅 비활성화 */
     #page-record .step-card[data-step="2"],
     #page-record .step-card[data-step="3"],
     #page-record .step-card[data-step="4"],
     #page-record .step-card[data-step="5"],
     #page-record .step-card[data-step="2"] ~ .section-card {
-      opacity: 0; max-height: 0; overflow: hidden; padding-top: 0; padding-bottom: 0;
-      margin-bottom: 0; border-width: 0; pointer-events: none;
-      transition: opacity .35s ease, max-height .4s ease, margin .3s ease, padding .3s ease;
-    }
-    #page-record.steps-unlocked .step-card[data-step="2"],
-    #page-record.steps-unlocked .step-card[data-step="3"],
-    #page-record.steps-unlocked .step-card[data-step="4"],
-    #page-record.steps-unlocked .step-card[data-step="5"],
-    #page-record.steps-unlocked .step-card[data-step="2"] ~ .section-card {
-      opacity: 1; max-height: 2000px; overflow: visible; pointer-events: auto;
-      padding-top: 18px; padding-bottom: 18px; margin-bottom: 14px; border-width: 1px;
+      opacity: 1; max-height: none; overflow: visible; pointer-events: auto;
     }
     /* 잠금 방식 선택 (V1.2) */
     .lock-mode-group { display: flex; flex-direction: column; gap: 8px; }
@@ -1891,6 +1883,11 @@
     }
     .record-card-detail.open { max-height: 600px; opacity: 1; }
     .record-card-detail-inner { padding-top: 4px; }
+    /* V2.0 — 읽기 전용 상세 행 */
+    .detail-row { display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .detail-row .dr-key { color: var(--muted); }
+    .detail-row .dr-val { color: var(--text); font-weight: 600; }
     .record-card-detail-toggle {
       display: flex; align-items: center; gap: 4px; margin-top: 10px;
       background: none; border: none; padding: 4px 0; cursor: pointer;
@@ -2426,30 +2423,11 @@
     <div class="chip-group" id="taken-meds-list"><!-- JS로 생성 --></div>
   </div>
 
-  <!-- 11. 메모 -->
-  <div class="section-card step-card" data-step="5">
-    <div class="step-badge">STEP 5</div>
-    <div class="section-title">메모</div>
-    <textarea class="memo-textarea" id="memo-input"
-      oninput="updateRecordProgress()"
-      placeholder="지금 마음에 떠오르는 것을 자유롭게 써보세요." rows="4"></textarea>
-  </div>
-
   <!-- 11-2. 오늘의 한 줄 회고 (6번) -->
   <div class="section-card">
     <div class="section-title">오늘의 한 줄 회고 <span style="font-weight:400;color:var(--muted);font-size:12px;">(선택)</span></div>
     <input type="text" class="retro-input" id="retro-input"
       placeholder="오늘 하루를 한 문장으로 남겨보세요." maxlength="100" />
-  </div>
-
-  <!-- 기록 완성도 (V11) -->
-  <div class="record-progress-card">
-    <div class="record-progress-head">
-      <span class="record-progress-label">기록 완성도</span>
-      <span class="record-progress-pct" id="record-progress-pct">0%</span>
-    </div>
-    <div class="record-progress-track"><div class="record-progress-fill" id="record-progress-fill"></div></div>
-    <div class="record-progress-items" id="record-progress-items"><!-- JS로 생성 --></div>
   </div>
 
   </div><!-- /record-detail -->
@@ -3618,33 +3596,10 @@ function expandDetailMode() {
 function updateStepProgress() {
   const hasEmotion = state.emotions.size > 0;
   document.getElementById('page-record')?.classList.toggle('steps-unlocked', hasEmotion);
-  updateRecordProgress();
 }
 
-/* 기록 완성도 진행률 (V11) — 감정·원인·수면·약·메모·충동 입력 여부 */
-function updateRecordProgress() {
-  const detailMemo = (document.getElementById('memo-input')?.value || '').trim();
-  const quickMemo  = (document.getElementById('quick-memo-input')?.value || '').trim();
-  const memo = detailMemo || quickMemo;   // 초간편 메모도 완성도에 반영 (V1.5)
-  const items = [
-    { key: '감정', done: state.emotions.size > 0 },
-    { key: '원인', done: state.causes.size > 0 },
-    { key: '수면', done: state.sleepHour != null },
-    { key: '약',   done: state.medication && state.medication !== 'na' },
-    { key: '메모', done: memo.length > 0 },
-    { key: '충동', done: state.impulse !== 'none' },
-  ];
-  const doneN = items.filter(i => i.done).length;
-  const pct = Math.round(doneN / items.length * 100);
-  const fill = document.getElementById('record-progress-fill');
-  const pctEl = document.getElementById('record-progress-pct');
-  const itemsEl = document.getElementById('record-progress-items');
-  if (fill) fill.style.width = pct + '%';
-  if (pctEl) pctEl.textContent = pct + '%';
-  if (itemsEl) itemsEl.innerHTML = items.map(i =>
-    `<span class="rp-item ${i.done ? 'done' : ''}">${i.done ? '✓' : '○'} ${i.key}</span>`
-  ).join('');
-}
+/* 기록 완성도 기능 제거 (V2.0) — 감정 기록에 점수를 매기지 않습니다 */
+function updateRecordProgress() { /* no-op */ }
 
 
 /* =====================================================
@@ -3891,10 +3846,8 @@ function toggleCausesPreview() {
 /* 초간편 메모 + 상세 메모를 하나로 합침 (V1.2)
    - 둘 다 있고 내용이 다르면 줄바꿈으로 연결, 같으면 하나만 */
 function mergeMemoInputs() {
-  const quick  = (document.getElementById('quick-memo-input')?.value || '').trim();
-  const detail = (document.getElementById('memo-input')?.value || '').trim();
-  if (quick && detail) return (quick === detail) ? quick : `${quick}\n${detail}`;
-  return quick || detail;
+  // 메모 입력은 '오늘 무슨 일이 있었나요?' 하나만 사용 (V2.0)
+  return (document.getElementById('quick-memo-input')?.value || '').trim();
 }
 
 function saveRecord() {
@@ -3958,6 +3911,7 @@ function saveRecord() {
   checkRiskStreakBanner();   // 저장 후 위기 연속 배너 갱신 (6번)
   renderQuickEmotions();     // 자주 쓴 감정 갱신 (8번)
   updateWidgetSummary();     // 위젯 요약 갱신 (V1.2)
+  refreshAllViews();         // 홈·기록목록·캘린더 즉시 동기화 (V2.0)
 }
 
 // ── 저장 완료 요약 카드 표시
@@ -4109,12 +4063,12 @@ function editRecord(id) {
   renderTakenMeds();
   document.getElementById('retro-input').value = r.retro || '';
 
-  // 메모 복원 (수정이므로 메모도 불러옴)
-  document.getElementById('memo-input').value = r.memo || '';
+  // 메모 복원 (수정이므로 메모도 불러옴) — 단일 메모 입력
+  const _qm = document.getElementById('quick-memo-input'); if (_qm) _qm.value = r.memo || '';
 
   // 수정 모드 UI 변경
   document.getElementById('edit-mode-banner').classList.remove('hidden');
-  const _sb = document.getElementById('simple-save-btn'); if (_sb) _sb.textContent = '✏️ 수정 완료';
+  const _sb = document.getElementById('simple-save-btn'); if (_sb) _sb.textContent = '수정 저장하기';
   document.getElementById('greeting-main').textContent = '기록을 수정해요';
 
   updateStepProgress();   // 감정 복원됐으면 전체 단계 노출
@@ -4199,7 +4153,7 @@ function resetForm() {
   document.getElementById('retro-input').value = '';
 
   // 메모 & 배너
-  document.getElementById('memo-input').value = '';
+  const _qm2 = document.getElementById('quick-memo-input'); if (_qm2) _qm2.value = '';
   document.getElementById('danger-banner').classList.remove('show');
 
   // 수정 모드 초기화
@@ -4413,6 +4367,8 @@ function filterRecords(records) {
 function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
   const riskLabel  = RISK_LABEL[riskClass];
   const dateStr    = formatCardDateTime(r.createdAt);
+  const _d         = new Date(r.createdAt);
+  const cardTime   = `${String(_d.getHours()).padStart(2,'0')}:${String(_d.getMinutes()).padStart(2,'0')}`;
   const intensityDisplay = r.intensity != null
     ? `<span class="intensity-tag">강도 ${r.intensity}/10</span>` : '';
   const causesText = (r.causes || []).length > 0 ? '원인: ' + r.causes.join(', ') : '';
@@ -4453,13 +4409,28 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
   const emergencyBtnHtml = riskClass === 'red'
     ? `<a class="action-btn emergency-card-btn" href="tel:1393">📞 긴급 도움 1393</a>` : '';
 
+  // 마음 신호 (자해/자살/타해) 읽기 전용 라벨
+  const signalMap = {
+    selfHarmRisk: { label:'자해 생각', map:{ flash:'스쳐감', frequent:'자주', specific:'구체적' } },
+    suicidalThought: { label:'죽고 싶은 생각', map:{ tired:'살기 싫음', repeated:'반복', plan:'계획' } },
+    harmToOthersRisk: { label:'타해/공격성', map:{ irritable:'예민', urge:'충동', plan:'계획' } },
+  };
+  const signalTags = Object.entries(signalMap)
+    .filter(([k]) => r[k] && r[k] !== 'none')
+    .map(([k, v]) => `<span class="meta-tag">${v.label}: ${v.map[r[k]] || r[k]}</span>`).join('');
+  const riskRowHtml = `<div class="detail-row"><span class="dr-key">위험도</span><span class="dr-val">${RISK_LABEL[riskClass] || '안전'}</span></div>`;
+  const timeRowHtml = `<div class="detail-row"><span class="dr-key">기록 시간</span><span class="dr-val">${dateStr}</span></div>`;
+
   // 자세히 보기 안에 들어갈 상세 내용 (감정 전체·원인·충동·약·메모·회고)
-  const hasDetail = allEmotionsHtml || causesText || metaTags || memoHtml || retroHtml || emergencyBtnHtml;
+  const hasDetail = allEmotionsHtml || causesText || metaTags || memoHtml || retroHtml || emergencyBtnHtml || signalTags;
   const detailHtml = hasDetail ? `
         <div class="record-card-detail" id="detail-${r.id}">
           <div class="record-card-detail-inner">
+            ${timeRowHtml}
+            ${riskRowHtml}
             ${allEmotionsHtml}
             ${causesText ? `<div class="record-causes">${escapeHtml(causesText)}</div>` : ''}
+            ${signalTags ? `<div class="record-meta">${signalTags}</div>` : ''}
             ${metaTags   ? `<div class="record-meta">${metaTags}</div>` : ''}
             ${memoHtml}
             ${retroHtml}
@@ -4477,14 +4448,13 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
         <div class="record-top">
           <span class="record-date">${dateStr}</span>
           <div class="record-top-right">
-            <span class="risk-badge ${riskClass}">${riskLabel}</span>
+            ${riskClass !== 'green' ? `<span class="risk-badge ${riskClass}">${riskLabel}</span>` : ''}
             <div class="card-menu-wrap">
               <button class="card-menu-btn" onclick="toggleCardMenu('${r.id}', event)" aria-label="더보기">⋯</button>
               <div class="card-menu" id="card-menu-${r.id}">
-                <button onclick="editRecord('${r.id}')">✏️ 수정</button>
-                <button onclick="reuseRecord('${r.id}')">↩ 재사용</button>
-                <button onclick="exportRecordPDF('${r.id}')">📄 PDF 저장</button>
-                <button class="danger" onclick="deleteRecord('${r.id}')">🗑 삭제</button>
+                <button onclick="editRecord('${r.id}')">✏️ 수정하기</button>
+                <button class="danger" onclick="deleteRecord('${r.id}')">🗑 삭제하기</button>
+                <button onclick="toggleCardMenu('${r.id}', event)">취소</button>
               </div>
             </div>
           </div>
@@ -4493,7 +4463,9 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
           ${emotionSummary(r.emotions)}
           ${intensityDisplay}
         </div>
-        ${memoIndicatorHtml}
+        ${(r.causes || []).length ? `<div class="record-cause-line">원인: ${escapeHtml(r.causes.slice(0,2).join(', '))}${r.causes.length > 2 ? ` 외 ${r.causes.length-2}` : ''}</div>` : ''}
+        ${(getMemoPreviewMode() === 'firstline' && hasMemo) ? `<div class="record-memo-preview">${escapeHtml(memoFirstLine)}</div>` : ''}
+        <div class="record-time-line">${hasMemo ? '<span class="rt-memo">📝 메모 있음</span>' : ''}<span class="rt-time">${cardTime}</span></div>
         ${detailHtml}
       </div>
     </div>`;
@@ -4620,7 +4592,7 @@ function reuseRecord(id) {
   document.getElementById('retro-input').value = '';
 
   // 메모는 비움
-  document.getElementById('memo-input').value = '';
+  const _qm3 = document.getElementById('quick-memo-input'); if (_qm3) _qm3.value = '';
 
   updateStepProgress();   // 감정 복원됐으면 전체 단계 노출
   switchTab('record');
@@ -4646,10 +4618,21 @@ function deleteRecord(id) {
   if (!confirm('이 기록을 삭제할까요?')) return;
   let records = getRecords().filter(r => r.id !== id);
   localStorage.setItem('emotionRecords', JSON.stringify(records));
-  document.getElementById('card-' + id)?.remove();
-  if (records.length === 0) loadRecordList();
-  updateWidgetSummary();     // 위젯 요약 갱신 (V1.2)
+  updateWidgetSummary();
+  refreshAllViews();        // 홈·기록목록·캘린더 즉시 동기화 (V2.0)
   showToast('기록이 삭제되었어요.');
+}
+
+/* 저장·수정·삭제 후 모든 화면 즉시 동기화 (V2.0) */
+function refreshAllViews() {
+  // 기록목록(날짜별 아코디언)
+  if (typeof loadRecordList === 'function') loadRecordList();
+  // 홈: 오늘의 기록·최근 기록·감정 흐름 캘린더
+  if (typeof renderHomeTodayStatus === 'function') renderHomeTodayStatus();
+  if (typeof renderHomeRecent === 'function') renderHomeRecent();
+  if (typeof renderMoodCalendar === 'function') renderMoodCalendar();
+  // 기록목록 캘린더(있으면)
+  if (typeof renderCalendar === 'function') { try { renderCalendar(); } catch (e) {} }
 }
 function clearAll() {
   if (!confirm('모든 기록을 삭제할까요?\n이 작업은 되돌릴 수 없습니다.')) return;
