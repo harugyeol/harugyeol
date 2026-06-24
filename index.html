@@ -374,7 +374,7 @@
 
     /* 기록 카드 */
     .record-card {
-      background: var(--surface); border-radius: 16px; margin-bottom: 14px;
+      background: var(--surface); border-radius: 16px; margin-bottom: 16px;
       border: 1px solid var(--card-border, rgba(0,0,0,0.06));
       overflow: hidden; display: flex;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03);
@@ -389,7 +389,7 @@
     .record-bar.yellow { background: var(--risk-yellow); }
     .record-bar.orange { background: var(--risk-orange); }
     .record-bar.red    { background: var(--risk-red); }
-    .record-body { flex: 1; padding: 14px; min-width: 0; }
+    .record-body { flex: 1; padding: 16px; min-width: 0; }
     .record-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
     .record-date { font-size: 12px; color: var(--muted); }
     .risk-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; letter-spacing: .04em; white-space: nowrap; }
@@ -423,6 +423,14 @@
       font-size: 12.5px; color: var(--muted); margin-top: 6px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    /* V1.7 — 미니멀 카드: 대표 감정 요약 + 메모 있음 표시 */
+    .record-summary-row { display: flex; align-items: center; gap: 8px; }
+    .emo-summary { font-size: 14.5px; font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 5px; }
+    .emo-summary-emoji { font-size: 17px; }
+    .emo-summary-more { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+    .emo-summary-empty { font-size: 13px; color: var(--muted); }
+    .record-summary-row .intensity-tag { margin-left: auto; }
+    .record-memo-flag { font-size: 12px; color: var(--muted); margin-top: 6px; }
     .record-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
     .action-btn {
       background: none; border: 1px solid var(--border); border-radius: 999px;
@@ -1210,7 +1218,7 @@
     /* 그룹 사이 여백 넉넉히 */
     .acc-group-title { margin-top: 30px; margin-bottom: 12px; }
     .acc-group-title.first { margin-top: 6px; }
-    .acc-item { margin-bottom: 12px; }
+    .acc-item { margin-bottom: 14px; }
 
     /* 🗓 주간 리포트 카드 (Apple 건강 앱 주간 요약 느낌) */
     .wreport-card {
@@ -1379,7 +1387,7 @@
     .tab-btn.active .tab-ico { filter: grayscale(0); opacity: 1; transform: translateY(-1px) scale(1.08); }
     .tab-txt { font-size: 10px; font-weight: 600; }
     /* 탭바가 하단으로 갔으니 페이지 상단 패딩 줄이고 하단 늘림 */
-    .page { padding: 20px 16px 96px; }
+    .page { padding: 22px 18px 100px; }
 
     /* ===== 🏠 홈 ===== */
     .home-brand {
@@ -1479,8 +1487,24 @@
     .home-quote-mark { font-size: 40px; color: var(--accent); opacity: .35; position: absolute; top: -2px; left: 12px; font-weight: 800; }
     .home-quote-text { font-size: 14px; color: var(--text); font-weight: 500; line-height: 1.5; padding-left: 30px; font-style: italic; }
 
-    .home-section-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 22px 0 12px 2px; }
+    .home-section-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 26px 0 14px 2px; }
     .home-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 24px 0; background: var(--surface); border-radius: 18px; }
+    /* V1.7 — 홈 최근 기록 컴팩트 리스트 */
+    .home-recent-list {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+    }
+    .home-recent-item {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 15px 16px; background: none; border: none; cursor: pointer; text-align: left;
+      border-bottom: 1px solid var(--border); font-family: var(--font);
+      -webkit-tap-highlight-color: transparent; transition: background .12s;
+    }
+    .home-recent-item:last-child { border-bottom: none; }
+    .home-recent-item:active { background: var(--accent-soft); }
+    .hr-emoji { font-size: 19px; }
+    .hr-name { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+    .hr-more { font-size: 12px; font-weight: 500; color: var(--muted); }
+    .hr-time { font-size: 12px; color: var(--muted); }
 
     /* ===== 📝 기록 Hero (Apple 건강 앱 느낌) ===== */
     #record-hero { margin-bottom: 18px; }
@@ -1548,6 +1572,14 @@
     }
     /* 잠금 방식 선택 (V1.2) */
     .lock-mode-group { display: flex; flex-direction: column; gap: 8px; }
+    /* 세그먼트 선택 (메모 미리보기 등) V1.7 */
+    .seg-group { display: flex; gap: 8px; }
+    .seg-btn {
+      flex: 1; padding: 11px 10px; background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 12px; font-family: var(--font); font-size: 13.5px; font-weight: 600; color: var(--muted);
+      cursor: pointer; -webkit-tap-highlight-color: transparent; transition: border-color .15s, background .15s, color .15s;
+    }
+    .seg-btn.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
     .lock-mode-btn {
       display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
       width: 100%; padding: 12px 14px; text-align: left;
@@ -1761,10 +1793,10 @@
     /* 카드 간격·라운드 통일 */
     .section-card, .acc-item, .wreport-card, .home-today-card,
     .home-streak-card, .home-quote-card { border-radius: 18px; }
-    .section-card { margin-bottom: 14px; padding: 18px; }
+    .section-card { margin-bottom: 16px; padding: 20px; }
     /* 그룹 제목 간격 통일 + 가독성 */
     .acc-group-title {
-      margin-top: 26px; margin-bottom: 11px; font-size: 13px;
+      margin-top: 30px; margin-bottom: 13px; font-size: 13px;
       font-weight: 700; color: var(--text); letter-spacing: -0.01em;
       text-transform: none; padding-left: 2px;
     }
@@ -2643,7 +2675,9 @@
      ===================================================== -->
 <div class="page" id="page-settings">
   <div class="settings-title">설정</div>
+  <div class="settings-desc" style="margin:-6px 0 16px;">필요한 항목만 눌러서 펼쳐보세요.</div>
 
+  <div class="acc-group-title first">🌙 화면</div>
   <!-- 화면 모드 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2672,6 +2706,7 @@
     </div></div>
   </div>
 
+  <div class="acc-group-title">🔔 알림</div>
   <!-- 알림 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2713,6 +2748,7 @@
     </div></div>
   </div>
 
+  <div class="acc-group-title">🔒 개인정보</div>
   <!-- 보안 (PIN) -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2748,23 +2784,7 @@
     </div></div>
   </div>
 
-  <!-- 약 복용 관리 -->
-  <div class="acc-item">
-    <button class="acc-header" onclick="toggleAccordion(this)">
-      <span>💊 약 복용 관리</span><span class="acc-arrow">›</span>
-    </button>
-    <div class="acc-body"><div class="acc-body-inner">
-      <div class="settings-desc" style="margin-bottom: 12px;">
-        복용 중인 약을 등록하면 기록할 때 체크로 빠르게 남길 수 있어요.
-      </div>
-      <div class="med-add-row">
-        <input type="text" id="med-name-input" placeholder="예: 탄산리튬" maxlength="30" />
-        <button class="med-add-btn" onclick="addMedName()">추가</button>
-      </div>
-      <div id="med-manage-list"><!-- JS로 생성 --></div>
-    </div></div>
-  </div>
-
+  <div class="acc-group-title">💾 데이터 관리</div>
   <!-- 백업 및 복원 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2781,6 +2801,24 @@
       <button class="perm-btn" style="margin-top:8px;" onclick="exportCSV()">📄 CSV로 내보내기 (엑셀용)</button>
       <button class="perm-btn" id="pdf-report-btn" style="margin-top:8px;" onclick="exportPDFReport()">📑 PDF 리포트 만들기</button>
       <div class="settings-desc" id="pdf-status" style="margin-top:8px;"></div>
+    </div></div>
+  </div>
+
+  <div class="acc-group-title">💊 건강 관리</div>
+  <!-- 약 복용 관리 -->
+  <div class="acc-item">
+    <button class="acc-header" onclick="toggleAccordion(this)">
+      <span>💊 약 복용 관리</span><span class="acc-arrow">›</span>
+    </button>
+    <div class="acc-body"><div class="acc-body-inner">
+      <div class="settings-desc" style="margin-bottom: 12px;">
+        복용 중인 약을 등록하면 기록할 때 체크로 빠르게 남길 수 있어요.
+      </div>
+      <div class="med-add-row">
+        <input type="text" id="med-name-input" placeholder="예: 탄산리튬" maxlength="30" />
+        <button class="med-add-btn" onclick="addMedName()">추가</button>
+      </div>
+      <div id="med-manage-list"><!-- JS로 생성 --></div>
     </div></div>
   </div>
 
@@ -2807,6 +2845,7 @@
     </div></div>
   </div>
 
+  <div class="acc-group-title">🎯 개인화</div>
   <!-- 기타 설정 (감정 목표) -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2832,6 +2871,23 @@
     </div></div>
   </div>
 
+  <!-- 메모 미리보기 설정 (V1.7) -->
+  <div class="acc-item">
+    <button class="acc-header" onclick="toggleAccordion(this)">
+      <span>📝 메모 미리보기</span><span class="acc-arrow">›</span>
+    </button>
+    <div class="acc-body"><div class="acc-body-inner">
+      <div class="settings-desc" style="margin-bottom: 12px;">
+        기록 목록 카드에서 메모를 어떻게 보여줄지 선택해요. 기본은 숨김이에요.
+      </div>
+      <div class="seg-group" id="memo-preview-group">
+        <button class="seg-btn" data-mode="hidden" onclick="setMemoPreviewMode('hidden')">숨김 (기본)</button>
+        <button class="seg-btn" data-mode="firstline" onclick="setMemoPreviewMode('firstline')">첫 줄 표시</button>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="acc-group-title">📖 도움말</div>
   <!-- 👋 처음 사용하는 분께 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2940,6 +2996,32 @@ const EMO_HEX = {
 };
 function emotionHex(name) { return EMO_HEX[emotionColorClass(name)] || '#9CA3AF'; }
 function emotionEmoji(name) { return (EMOTION_META[name] && EMOTION_META[name].e) || '•'; }
+
+/* 대표 감정 + "외 N개" 요약 (V1.7) */
+function emotionSummary(emotions) {
+  const list = emotions || [];
+  if (list.length === 0) return '<span class="emo-summary-empty">감정 없음</span>';
+  const first = list[0];
+  const rest = list.length - 1;
+  return `<span class="emo-summary"><span class="emo-summary-emoji">${emotionEmoji(first)}</span>${escapeHtml(first)}${rest > 0 ? ` <span class="emo-summary-more">외 ${rest}개</span>` : ''}</span>`;
+}
+
+/* 메모 미리보기 설정 (V1.7): 'hidden'(기본) | 'firstline' */
+function getMemoPreviewMode() {
+  try { return localStorage.getItem('memoPreviewMode') || 'hidden'; } catch { return 'hidden'; }
+}
+function setMemoPreviewMode(mode) {
+  try { localStorage.setItem('memoPreviewMode', mode); } catch (e) {}
+  refreshMemoPreviewUI();
+  if (typeof loadRecordList === 'function') loadRecordList();
+  showToast(mode === 'firstline' ? '메모 첫 줄을 표시해요' : '메모를 숨겨요');
+}
+function refreshMemoPreviewUI() {
+  const mode = getMemoPreviewMode();
+  document.querySelectorAll('#memo-preview-group .seg-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+}
 
 // 감정 강도: 1~10
 const INTENSITY_MIN     = 1;
@@ -4144,7 +4226,6 @@ function filterRecords(records) {
 function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
   const riskLabel  = RISK_LABEL[riskClass];
   const dateStr    = formatDate(r.createdAt);
-  const emotionTags = (r.emotions || []).map(e => `<span class="emotion-tag ${emotionColorClass(e)}">${escapeHtml(e)}</span>`).join('');
   const intensityDisplay = r.intensity != null
     ? `<span class="intensity-tag">강도 ${r.intensity}/10</span>` : '';
   const causesText = (r.causes || []).length > 0 ? '원인: ' + r.causes.join(', ') : '';
@@ -4169,18 +4250,28 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
 
   const memoHtml = r.memo ? `<div class="record-memo">${escapeHtml(r.memo)}</div>` : '';
   const retroHtml = r.retro ? `<div class="record-memo" style="font-style:italic;">📝 ${escapeHtml(r.retro)}</div>` : '';
-  // 기본 카드용 메모 첫 줄 미리보기 (V1.4)
-  const memoFirstLine = r.memo ? r.memo.split('\n')[0].trim() : '';
-  const memoPreviewHtml = memoFirstLine
-    ? `<div class="record-memo-preview">${escapeHtml(memoFirstLine)}</div>` : '';
+  // 메모 미리보기: 설정이 '첫 줄 표시'일 때만 노출, 기본은 "📝 메모 있음" 표시만 (V1.7)
+  const hasMemo = !!(r.memo && r.memo.trim());
+  const memoFirstLine = hasMemo ? r.memo.split('\n')[0].trim() : '';
+  const memoIndicatorHtml = hasMemo
+    ? (getMemoPreviewMode() === 'firstline'
+        ? `<div class="record-memo-preview">${escapeHtml(memoFirstLine)}</div>`
+        : `<div class="record-memo-flag">📝 메모 있음</div>`)
+    : '';
+
+  // 감정 전체 칩 (자세히 보기 안으로 이동)
+  const emotionTags = (r.emotions || []).map(e => `<span class="emotion-tag ${emotionColorClass(e)}">${escapeHtml(e)}</span>`).join('');
+  const allEmotionsHtml = emotionTags ? `<div class="record-emotions">${emotionTags}</div>` : '';
+
   const emergencyBtnHtml = riskClass === 'red'
     ? `<a class="action-btn emergency-card-btn" href="tel:1393">📞 긴급 도움 1393</a>` : '';
 
-  // 자세히 보기 안에 들어갈 상세 내용 (원인·충동·약·메모)
-  const hasDetail = causesText || metaTags || memoHtml || retroHtml || emergencyBtnHtml;
+  // 자세히 보기 안에 들어갈 상세 내용 (감정 전체·원인·충동·약·메모·회고)
+  const hasDetail = allEmotionsHtml || causesText || metaTags || memoHtml || retroHtml || emergencyBtnHtml;
   const detailHtml = hasDetail ? `
         <div class="record-card-detail" id="detail-${r.id}">
           <div class="record-card-detail-inner">
+            ${allEmotionsHtml}
             ${causesText ? `<div class="record-causes">${escapeHtml(causesText)}</div>` : ''}
             ${metaTags   ? `<div class="record-meta">${metaTags}</div>` : ''}
             ${memoHtml}
@@ -4211,8 +4302,11 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
             </div>
           </div>
         </div>
-        <div class="record-emotions">${emotionTags}${intensityDisplay}</div>
-        ${memoPreviewHtml}
+        <div class="record-summary-row">
+          ${emotionSummary(r.emotions)}
+          ${intensityDisplay}
+        </div>
+        ${memoIndicatorHtml}
         ${detailHtml}
       </div>
     </div>`;
@@ -4618,7 +4712,18 @@ function renderHomeRecent() {
     el.innerHTML = `<div class="home-empty">아직 기록이 없어요.</div>`;
     return;
   }
-  el.innerHTML = recent.map(r => renderRecordCard(r)).join('');
+  el.innerHTML = `<div class="home-recent-list">` + recent.map(r => {
+    const d = new Date(r.createdAt);
+    const time = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const emos = r.emotions || [];
+    const first = emos[0] || '모르겠음';
+    const rest = emos.length - 1;
+    return `<button class="home-recent-item" onclick="switchTab('list')">
+      <span class="hr-emoji">${emotionEmoji(first)}</span>
+      <span class="hr-name">${escapeHtml(first)}${rest > 0 ? ` <span class="hr-more">외 ${rest}개</span>` : ''}</span>
+      <span class="hr-time">${time}</span>
+    </button>`;
+  }).join('') + `</div>`;
 }
 
 /* =====================================================
@@ -7563,6 +7668,7 @@ function startApp() {
   refreshPinSettingUI();
   refreshCycleSettingUI();  // 월경주기 설정 입력칸 복원 (3번)
   refreshGoalSettingUI();   // 감정 목표 체크 복원 (14번)
+  refreshMemoPreviewUI();   // 📝 메모 미리보기 설정 복원 (V1.7)
 
   // 최초 실행이면 온보딩 표시 (PIN/앱 진입과 별개로 위에 덮임)
   if (!hasSeenOnboarding()) openOnboarding();
