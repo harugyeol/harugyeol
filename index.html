@@ -1803,6 +1803,22 @@
     }
     .simple-save-btn:active { transform: scale(.98); opacity: .92; }
     #simple-save-btn-bottom { margin-top: 4px; margin-bottom: 8px; }
+    /* 오늘 상태 헤더 */
+    .today-status-head { margin: 8px 2px 10px; }
+    /* iOS 스타일 토글 */
+    .period-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .ios-toggle {
+      flex-shrink: 0; width: 50px; height: 30px; border-radius: 999px; border: none;
+      background: var(--border); position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent;
+      transition: background var(--t-base) var(--ease);
+    }
+    .ios-toggle.on { background: var(--accent); }
+    .ios-toggle-knob {
+      position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%;
+      background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      transition: transform var(--t-base) var(--ease);
+    }
+    .ios-toggle.on .ios-toggle-knob { transform: translateX(20px); }
     .detail-toggle-btn {
       width: 100%; height: 44px; margin-top: 10px; background: none;
       border: 1px solid var(--border); border-radius: 999px;
@@ -2441,6 +2457,12 @@
     </div>
   </div>
 
+  <!-- ===== 오늘 상태 (하루 한 번) ===== -->
+  <div class="today-status-head">
+    <div class="section-title" style="font-size:15px;">오늘 상태</div>
+    <div class="settings-desc" style="margin-top:2px;">하루에 한 번만 입력해도 오늘 기록에 함께 반영돼요.</div>
+  </div>
+
   <!-- 8. 수면시간 (선택 안 해도 저장 가능) -->
   <div class="section-card step-card" data-step="4">
     <div class="step-badge">STEP 4</div>
@@ -2455,8 +2477,8 @@
     <div class="radio-group" id="sleep-quality-group"><!-- JS로 생성 --></div>
   </div>
 
-  <!-- 9-2. 월경 주기 (1번) -->
-  <div class="section-card">
+  <!-- 9-2. 월경 주기 (1번) — 생리 기록 사용 시에만 표시 -->
+  <div class="section-card period-section">
     <div class="section-title">월경 주기 <span style="font-weight:400;color:var(--muted);font-size:12px;">(선택)</span></div>
     <div class="radio-group" id="cycle-group"><!-- JS로 생성 --></div>
   </div>
@@ -2997,7 +3019,16 @@
       <span>🌙 월경 주기</span><span class="acc-arrow">›</span>
     </button>
     <div class="acc-body"><div class="acc-body-inner">
-      <div class="settings-desc" style="margin-bottom: 12px;">
+      <!-- 생리 기록 사용 ON/OFF -->
+      <div class="period-toggle-row">
+        <div>
+          <div class="settings-label">생리 기록 사용</div>
+          <div class="settings-desc">생리/PMS/배란기 기록이 필요할 때만 켜요.</div>
+        </div>
+        <button class="ios-toggle" id="period-tracking-toggle" onclick="setPeriodTracking(!isPeriodTrackingOn())" aria-label="생리 기록 사용 토글"><span class="ios-toggle-knob"></span></button>
+      </div>
+      <div class="period-section">
+      <div class="settings-desc" style="margin:12px 0;">
         최근 생리 시작일과 평균 주기를 입력하면 다음 예정일·PMS·배란일을 계산하고, 돌아보기 탭에서 PMS 기간 감정을 살펴봐요.
       </div>
       <div class="cycle-input-row">
@@ -3011,6 +3042,7 @@
       <button class="perm-btn" style="margin-top:10px;" onclick="saveCycleSettings()">💾 주기 정보 저장</button>
       <button class="perm-btn" style="margin-top:8px; display:none;" id="cycle-clear-btn" onclick="clearCycleSettings()">🗑 주기 정보 삭제</button>
       <div id="cycle-predict-wrap" class="cycle-predict"><!-- JS로 생성 --></div>
+      </div>
     </div></div>
   </div>
 
@@ -3931,17 +3963,18 @@ function saveRecord() {
     } : null,
     causes,
     causeKeys:        [...state.causes],
-    sleepHour:        state.sleepHour,
-    sleepQuality:     state.sleepQuality,
-    medication:       state.medication,
-    cyclePhase:       state.cyclePhase,            // 월경 주기 (1번)
-    takenMeds:        [...state.takenMeds],        // 복용한 약 (2번)
     memo:             mergeMemoInputs(),
     retro:            document.getElementById('retro-input').value.trim(),  // 한 줄 회고 (6번)
     riskLevel:        risk,
   };
 
   const records = getRecords();
+
+  // 오늘 상태(수면·생리·약)를 기록의 날짜 기준 dailyStatus에 저장 (감정 저장과 분리된 helper)
+  try {
+    const dateKey = getDateKey(record.createdAt);
+    saveDailyStatusForDate(dateKey, collectDailyStatusInput());
+  } catch (e) { /* dailyStatus 저장 실패가 감정 저장을 막지 않도록 */ }
 
   if (state.editingId) {
     // 수정: 기존 id 유지, 제자리 교체
@@ -4104,22 +4137,25 @@ function editRecord(id) {
   });
   refreshCausesPreview();
 
+  // 오늘 상태(수면·생리·약)는 기록 날짜의 dailyStatus 우선, 없으면 record 내부값 fallback
+  const _ds = getDailyStatusForRecord(r);
+
   // 수면시간
-  state.sleepHour = r.sleepHour ?? null;
+  state.sleepHour = _ds.sleepHour ?? null;
   refreshSleepHourUI();
 
   // 수면 질
-  state.sleepQuality = r.sleepQuality || 'none';
+  state.sleepQuality = _ds.sleepQuality || 'none';
   refreshRadioUI('sleep-quality-group', SLEEP_QUALITY, 'sleepQuality');
 
   // 약 상태
-  state.medication = r.medication || 'na';
+  state.medication = _ds.medication || 'na';
   refreshRadioUI('medication-group', MEDICATION, 'medication');
 
   // 월경 주기 / 복용약 / 회고 복원
-  state.cyclePhase = r.cyclePhase || 'none';
+  state.cyclePhase = _ds.cyclePhase || 'none';
   refreshRadioUI('cycle-group', CYCLE_OPTIONS, 'cyclePhase');
-  state.takenMeds = new Set(r.takenMeds || []);
+  state.takenMeds = new Set(_ds.takenMeds || []);
   renderTakenMeds();
   document.getElementById('retro-input').value = r.retro || '';
 
@@ -4193,23 +4229,9 @@ function resetForm() {
   document.querySelectorAll('#cause-sub-panels .cause-check').forEach(b => b.classList.remove('selected'));
   refreshCausesPreview();
 
-  // 수면시간
-  state.sleepHour = null;
-  refreshSleepHourUI();
-
-  // 수면 질
-  state.sleepQuality = 'none';
-  refreshRadioUI('sleep-quality-group', SLEEP_QUALITY, 'sleepQuality');
-
-  // 약 상태
-  state.medication = 'na';
-  refreshRadioUI('medication-group', MEDICATION, 'medication');
-
-  // 월경 주기 / 복용약 / 회고 초기화
-  state.cyclePhase = 'none';
-  refreshRadioUI('cycle-group', CYCLE_OPTIONS, 'cyclePhase');
-  state.takenMeds.clear();
-  renderTakenMeds();
+  // 오늘 상태(수면·수면질·약·생리·복용약)는 비우지 않고 오늘 날짜 dailyStatus를 다시 로드
+  // (하루에 여러 번 기록할 때 매번 다시 입력하지 않도록)
+  loadDailyStatusToForm(getDateKey(new Date()));
   document.getElementById('retro-input').value = '';
 
   // 메모 & 배너
@@ -4371,12 +4393,13 @@ function filterRecords(records) {
   // 위험 상태 전용 필터 (5번)
   if (listFilter.special !== 'all') {
     result = result.filter(r => {
+      const ds = getDailyStatusForRecord(r);
       switch (listFilter.special) {
         case 'danger':      return (r.riskLevel === 'red') || (r.riskLevel === 'orange');
-        case 'missed_med':  return r.medication === 'missed';
-        case 'stopped_med': return r.medication === 'stopped';
-        case 'side_effect': return r.medication === 'sideeffect';
-        case 'sleep_lack':  return r.sleepHour != null && r.sleepHour <= 4;
+        case 'missed_med':  return ds.medication === 'missed';
+        case 'stopped_med': return ds.medication === 'stopped';
+        case 'side_effect': return ds.medication === 'sideeffect';
+        case 'sleep_lack':  return ds.sleepHour != null && ds.sleepHour <= 4;
         default: return true;
       }
     });
@@ -4415,7 +4438,7 @@ function filterRecords(records) {
         ...(r.emotions || []),
         ...(r.causes || []),
         r.memo || '', r.retro || '',
-        ...(r.takenMeds || []),
+        ...(getDailyStatusForRecord(r).takenMeds || []),
         ...impulseTexts,
       ].join(' ').toLowerCase();
       return hay.includes(q);
@@ -4433,14 +4456,16 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
     ? `<span class="intensity-tag">강도 ${r.intensity}/10</span>` : '';
   const causesText = (r.causes || []).length > 0 ? '원인: ' + r.causes.join(', ') : '';
 
-  // 수면·약 메타 태그
-  const sleepHourTag  = r.sleepHour != null ? `🛌 ${r.sleepHour}시간` : '';
-  const sleepQualMap  = { none:'', bad:'수면 나쁨', ok:'수면 보통', good:'수면 좋음' };
-  const sleepQualTag  = sleepQualMap[r.sleepQuality] || '';
+  // 수면·약 메타 태그 — dailyStatus(날짜 기준) 우선, 없으면 record 내부값 fallback
+  const _rs = getDailyStatusForRecord(r);
+  const _periodOn = isPeriodTrackingOn();
+  const sleepHourTag  = _rs.sleepHour != null ? `🛌 ${_rs.sleepHour}시간` : '';
+  const sleepQualMap  = { none:'', bad:'수면 나쁨', ok:'수면 보통', normal:'수면 보통', good:'수면 좋음' };
+  const sleepQualTag  = sleepQualMap[_rs.sleepQuality] || '';
   const medMap        = { taken:'약 복용', missed:'약 빼먹음', stopped:'단약 중', dosechange:'용량 변경', sideeffect:'부작용 있음' };
-  const medTag        = (r.medication && r.medication !== 'na') ? (medMap[r.medication] || '') : '';
-  const cycleTag      = CYCLE_LABEL[r.cyclePhase] ? `🌙 ${CYCLE_LABEL[r.cyclePhase]}` : '';
-  const takenMedsTag  = (r.takenMeds || []).length ? `💊 ${r.takenMeds.join(', ')}` : '';
+  const medTag        = (_rs.medication && _rs.medication !== 'na') ? (medMap[_rs.medication] || '') : '';
+  const cycleTag      = (_periodOn && CYCLE_LABEL[_rs.cyclePhase]) ? `🌙 ${CYCLE_LABEL[_rs.cyclePhase]}` : '';
+  const takenMedsTag  = (_rs.takenMeds || []).length ? `💊 ${_rs.takenMeds.join(', ')}` : '';
   // V9 충동 태그: 종류 이모지 + 강도
   let impulseTag = '';
   if (r.impulseDetail && (r.impulseDetail.types || []).length) {
@@ -4557,6 +4582,8 @@ function openRecordDetail(id, ev) {
     impulseStr = parts.filter(Boolean).join(' · ');
   }
 
+  const ds = getDailyStatusForRecord(r);
+  const periodOn = isPeriodTrackingOn();
   const rows = [
     ['기록 시간', timeStr],
     ['감정', (r.emotions || []).join(', ') || '—'],
@@ -4564,10 +4591,10 @@ function openRecordDetail(id, ev) {
     ['원인', (r.causes || []).join(', ') || '—'],
     ['위험도', RISK_LABEL[riskClass] || '안전'],
     ['마음 신호', signals || '—'],
-    ['수면', r.sleepHour != null ? `${r.sleepHour}시간${sleepQualMap[r.sleepQuality] ? ' · ' + sleepQualMap[r.sleepQuality] : ''}` : '—'],
-    ['월경주기', CYCLE_LABEL[r.cyclePhase] || '—'],
-    ['약 상태', (r.medication && r.medication !== 'na') ? (medMap[r.medication] || '—') : '해당 없음'],
-    ['복용약', (r.takenMeds || []).length ? r.takenMeds.join(', ') : '—'],
+    ['수면', ds.sleepHour != null ? `${ds.sleepHour}시간${sleepQualMap[ds.sleepQuality] ? ' · ' + sleepQualMap[ds.sleepQuality] : ''}` : '—'],
+    ...(periodOn ? [['월경주기', CYCLE_LABEL[ds.cyclePhase] || '—']] : []),
+    ['약 상태', (ds.medication && ds.medication !== 'na') ? (medMap[ds.medication] || '—') : '해당 없음'],
+    ['복용약', (ds.takenMeds || []).length ? ds.takenMeds.join(', ') : '—'],
     ['충동', impulseStr || '—'],
     ['메모', r.memo ? escapeHtml(r.memo) : '—'],
     ['한 줄 회고', r.retro ? escapeHtml(r.retro) : '—'],
@@ -4695,7 +4722,7 @@ function exportRecordPDF(id) {
       `강도: ${r.intensity ?? '-'} / 10`,
       `위험도: ${RISK_LABEL[r.riskLevel] || '-'}`,
       `원인: ${(r.causes||[]).join(', ') || '-'}`,
-      `수면: ${r.sleepHour != null ? r.sleepHour + '시간' : '-'}`,
+      `수면: ${getDailyStatusForRecord(r).sleepHour != null ? getDailyStatusForRecord(r).sleepHour + '시간' : '-'}`,
       `메모: ${r.memo || '-'}`,
       `한 줄 회고: ${r.retro || '-'}`,
     ];
@@ -4757,23 +4784,8 @@ function reuseRecord(id) {
   });
   refreshCausesPreview();
 
-  // 수면시간 복원
-  state.sleepHour = r.sleepHour ?? null;
-  refreshSleepHourUI();
-
-  // 수면 질 복원
-  state.sleepQuality = r.sleepQuality || 'none';
-  refreshRadioUI('sleep-quality-group', SLEEP_QUALITY, 'sleepQuality');
-
-  // 약 상태 복원
-  state.medication = r.medication || 'na';
-  refreshRadioUI('medication-group', MEDICATION, 'medication');
-
-  // 월경 주기 / 복용약 복원 (회고·메모는 새 기록용이라 비움)
-  state.cyclePhase = r.cyclePhase || 'none';
-  refreshRadioUI('cycle-group', CYCLE_OPTIONS, 'cyclePhase');
-  state.takenMeds = new Set(r.takenMeds || []);
-  renderTakenMeds();
+  // 오늘 상태(수면·약·생리·복용약)는 새 기록이므로 오늘 날짜 dailyStatus 기준으로 로드
+  loadDailyStatusToForm(getDateKey(new Date()));
   document.getElementById('retro-input').value = '';
 
   // 메모는 비움
@@ -5228,11 +5240,14 @@ function renderClinicReport() {
     (r.emotions || []).forEach(e => emoCnt[e] = (emoCnt[e] || 0) + 1);
     (r.causes || []).forEach(c => causeCnt[c] = (causeCnt[c] || 0) + 1);
     if (r.intensity != null) { intSum += r.intensity; intN++; }
-    if (r.sleepHour != null) { sleepSum += r.sleepHour; sleepN++; }
     if (r.impulseDetail && (r.impulseDetail.types || []).length) impulseN++;
-    if (r.medication === 'missed') medMissN++;
     if (r.riskLevel && riskCnt[r.riskLevel] != null) riskCnt[r.riskLevel]++;
     if (r.memo && r.memo.trim()) memos.push(r.memo.trim());
+  });
+  // 수면·약은 날짜 단위(중복 제거)로 집계
+  getDailyStatusEntriesForRecords(recs).forEach(d => {
+    if (d.sleepHour != null) { sleepSum += d.sleepHour; sleepN++; }
+    if (d.medication === 'missed') medMissN++;
   });
   const topEmo = Object.entries(emoCnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const topCause = Object.entries(causeCnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
@@ -5320,10 +5335,12 @@ function renderAutoRetro() {
     (r.emotions || []).forEach(e => emoCnt[e] = (emoCnt[e] || 0) + 1);
     (r.causes || []).forEach(c => { const cat = c.split(':')[0]; causeCnt[cat] = (causeCnt[cat] || 0) + 1; });
     if (r.intensity != null) { intSum += r.intensity; intN++; }
-    if (r.sleepHour != null) { sleepSum += r.sleepHour; sleepN++; }
     if (r.impulseDetail && (r.impulseDetail.types || []).length) impulseN++;
-    if (r.medication === 'missed') medMissN++;
     if (r.riskLevel && riskCnt[r.riskLevel] != null) riskCnt[r.riskLevel]++;
+  });
+  getDailyStatusEntriesForRecords(recs).forEach(d => {
+    if (d.sleepHour != null) { sleepSum += d.sleepHour; sleepN++; }
+    if (d.medication === 'missed') medMissN++;
   });
   const topEmo = Object.entries(emoCnt).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0]);
   const topCause = Object.entries(causeCnt).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0]);
@@ -5578,12 +5595,13 @@ function renderMonthlyReview() {
       </div>`).join('')
     : `<div class="mr-emo-row mr-muted">감정 기록이 없어요</div>`;
 
-  // 평균 수면
-  const sleeps = recs.map(r => r.sleepHour).filter(v => typeof v === 'number' && !isNaN(v));
+  // 평균 수면 / 약 복용률 — 날짜 단위(중복 제거)
+  const _dailyMR = getDailyStatusEntriesForRecords(recs);
+  const sleeps = _dailyMR.map(d => d.sleepHour).filter(v => typeof v === 'number' && !isNaN(v));
   const avgSleep = sleeps.length ? (sleeps.reduce((a,b)=>a+b,0)/sleeps.length) : null;
   // 약 복용률
-  const medRecs = recs.filter(r => r.medication === 'taken' || r.medication === 'missed');
-  const medTaken = recs.filter(r => r.medication === 'taken').length;
+  const medRecs = _dailyMR.filter(d => d.medication === 'taken' || d.medication === 'missed');
+  const medTaken = _dailyMR.filter(d => d.medication === 'taken').length;
   const medRate = medRecs.length ? Math.round(medTaken / medRecs.length * 100) : null;
   // 위험 기록 수 (orange 이상)
   const riskCnt = recs.filter(r => (RISK_ORDER[r.riskLevel] ?? 0) >= 2).length;
@@ -5666,8 +5684,8 @@ function renderWeeklyReport() {
   const topEmo = Object.entries(emoCount).sort((a, b) => b[1] - a[1])[0];
   const topCause = Object.entries(causeCount).sort((a, b) => b[1] - a[1])[0];
 
-  // 평균 수면
-  const sleeps = thisWeek.map(r => r.sleepHour).filter(v => v != null);
+  // 평균 수면 — 날짜 단위(중복 제거)
+  const sleeps = getDailyStatusEntriesForRecords(thisWeek).map(d => d.sleepHour).filter(v => v != null);
   const avgSleep = sleeps.length ? (sleeps.reduce((a, b) => a + b, 0) / sleeps.length).toFixed(1) : '—';
 
   // 격려 문구 (점수대별)
@@ -6463,7 +6481,7 @@ function checkManiaBanner() {
 
   // 조증 조건 — 해당 기록 개수
   const maniaCount = week.filter(r =>
-    (r.sleepHour != null && r.sleepHour <= 4) &&         // 수면 4시간 이하
+    (getDailyStatusForRecord(r).sleepHour != null && getDailyStatusForRecord(r).sleepHour <= 4) &&  // 수면 4시간 이하
     (r.impulseRisk && r.impulseRisk !== 'none') &&        // 충동 행동 있음
     (r.intensity != null && r.intensity >= 7) &&          // 강도 7 이상
     (r.causeKeys || []).some(k => k.startsWith('들뜬 기분 신호:') || k.startsWith('조증 신호:')) // 들뜬 기분 신호 원인 선택 (구 데이터 호환)
@@ -6539,9 +6557,10 @@ function renderPatternInsights() {
   const insights = [];
   const isBad = r => (RISK_ORDER[r.riskLevel] ?? 0) >= 2; // orange 이상
   const POS = ['평온', '안정', '기쁨', '설렘', '희망', '감사'];
+  const dsOf = r => getDailyStatusForRecord(r);
 
   // ① 수면 부족(≤4h)과 위험도 관계
-  const lowSleep = recs.filter(r => r.sleepHour != null && r.sleepHour <= 4);
+  const lowSleep = recs.filter(r => dsOf(r).sleepHour != null && dsOf(r).sleepHour <= 4);
   if (lowSleep.length >= 2) {
     const badRate = Math.round(lowSleep.filter(isBad).length / lowSleep.length * 100);
     const overallBad = Math.round(recs.filter(isBad).length / recs.length * 100);
@@ -6553,10 +6572,10 @@ function renderPatternInsights() {
   }
 
   // ② 약 빼먹음과 감정 변화
-  const missed = recs.filter(r => r.medication === 'missed');
+  const missed = recs.filter(r => dsOf(r).medication === 'missed');
   if (missed.length >= 1) {
     const avgMissed = avgIntensity(missed);
-    const taken = recs.filter(r => r.medication === 'taken');
+    const taken = recs.filter(r => dsOf(r).medication === 'taken');
     if (taken.length >= 1) {
       const avgTaken = avgIntensity(taken);
       const cmp = avgMissed > avgTaken ? '높았어요' : '낮았어요';
@@ -6566,11 +6585,11 @@ function renderPatternInsights() {
     }
   }
 
-  // ③ PMS/생리 기간 감정 변화
-  const pmsRecs = recs.filter(r => r.cyclePhase === 'pms' || r.cyclePhase === 'period');
+  // ③ PMS/생리 기간 감정 변화 (생리 기록 사용 시에만)
+  const pmsRecs = isPeriodTrackingOn() ? recs.filter(r => { const c = dsOf(r).cyclePhase; return c === 'pms' || c === 'period'; }) : [];
   if (pmsRecs.length >= 2) {
     const avgPms = avgIntensity(pmsRecs);
-    const others = recs.filter(r => !(r.cyclePhase === 'pms' || r.cyclePhase === 'period'));
+    const others = recs.filter(r => { const c = dsOf(r).cyclePhase; return !(c === 'pms' || c === 'period'); });
     if (others.length >= 1) {
       const avgOther = avgIntensity(others);
       const cmp = avgPms > avgOther ? '더 강하게' : '비슷하거나 낮게';
@@ -6662,7 +6681,7 @@ function switchTab(tab) {
   if (fab) fab.style.display = (tab === 'record') ? 'none' : 'flex';
 
   if (tab === 'home')     loadHome();
-  if (tab === 'record')   renderRecordHero();
+  if (tab === 'record')   { renderRecordHero(); if (!state.editingId) loadDailyStatusToForm(getDateKey(new Date())); }
   if (tab === 'list')     { loadRecordList(); loadCalendar(); }
   if (tab === 'summary')  loadSummary();
 }
@@ -6989,6 +7008,120 @@ function getRecords() {
   catch { return []; }
 }
 
+/* =====================================================
+   📅 dailyStatus — 하루 단위 상태(수면·생리·약) 저장소
+   "감정은 여러 번, 하루 상태는 하루 한 번" 구조
+   localStorage key: 'dailyStatus'
+   ===================================================== */
+function getDailyStatus() {
+  try { return JSON.parse(localStorage.getItem('dailyStatus') || '{}'); }
+  catch { return {}; }
+}
+function saveDailyStatusObj(obj) {
+  try { localStorage.setItem('dailyStatus', JSON.stringify(obj)); } catch (e) {}
+}
+/* 특정 ISO 문자열/Date에서 YYYY-MM-DD 키 추출 */
+function getDateKey(d) {
+  const dt = (d instanceof Date) ? d : new Date(d);
+  return getLocalYMD(dt);
+}
+/* 현재 입력 폼에서 오늘 상태 값 수집 */
+function collectDailyStatusInput() {
+  return {
+    sleepHour:    state.sleepHour,
+    sleepQuality: state.sleepQuality,
+    cyclePhase:   state.cyclePhase,
+    medication:   state.medication,
+    takenMeds:    [...state.takenMeds],
+  };
+}
+/* 특정 날짜의 dailyStatus 저장/업데이트 */
+function saveDailyStatusForDate(dateKey, data) {
+  const all = getDailyStatus();
+  all[dateKey] = { ...(all[dateKey] || {}), ...data };
+  saveDailyStatusObj(all);
+}
+/* 기록 1건에 대한 상태 조회: dailyStatus 우선, 없으면 record 내부값 fallback */
+function getDailyStatusForRecord(record) {
+  if (!record) return {};
+  const key = getDateKey(record.createdAt);
+  const ds = getDailyStatus()[key] || {};
+  return {
+    sleepHour:    ds.sleepHour    != null ? ds.sleepHour    : record.sleepHour,
+    sleepQuality: ds.sleepQuality != null ? ds.sleepQuality : record.sleepQuality,
+    cyclePhase:   ds.cyclePhase   != null ? ds.cyclePhase   : record.cyclePhase,
+    medication:   ds.medication   != null ? ds.medication   : record.medication,
+    takenMeds:    ds.takenMeds    != null ? ds.takenMeds    : (record.takenMeds || []),
+  };
+}
+
+/* 날짜 단위 상태 목록 — 같은 날짜 중복 제거 (수면/약/생리 통계용) */
+function getDailyStatusEntriesForRecords(records) {
+  const seen = new Set();
+  const result = [];
+  (records || []).forEach(r => {
+    if (!r || !r.createdAt) return;
+    const key = getDateKey(r.createdAt);
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push({ dateKey: key, ...getDailyStatusForRecord(r) });
+  });
+  return result;
+}
+
+/* 오늘 상태값을 폼에 로드 (지정 날짜 dailyStatus 기준) */
+function loadDailyStatusToForm(dateKey) {
+  const ds = getDailyStatus()[dateKey] || {};
+  state.sleepHour    = ds.sleepHour ?? null;
+  state.sleepQuality = ds.sleepQuality || 'none';
+  state.medication   = ds.medication || 'na';
+  state.cyclePhase   = ds.cyclePhase || 'none';
+  state.takenMeds    = new Set(ds.takenMeds || []);
+  if (typeof refreshSleepHourUI === 'function') refreshSleepHourUI();
+  refreshRadioUI('sleep-quality-group', SLEEP_QUALITY, 'sleepQuality');
+  refreshRadioUI('medication-group', MEDICATION, 'medication');
+  refreshRadioUI('cycle-group', CYCLE_OPTIONS, 'cyclePhase');
+  if (typeof renderTakenMeds === 'function') renderTakenMeds();
+}
+/* 기존 records → dailyStatus 1회 마이그레이션 (기존 데이터 보존) */
+function migrateDailyStatusIfNeeded() {
+  if (localStorage.getItem('dailyStatus_migrated')) return;
+  try {
+    const all = getDailyStatus();
+    getRecords().forEach(r => {
+      if (!r.createdAt) return;
+      const key = getDateKey(r.createdAt);
+      if (!all[key]) all[key] = {};
+      const d = all[key];
+      if (d.sleepHour    == null && r.sleepHour    != null) d.sleepHour    = r.sleepHour;
+      if (d.sleepQuality == null && r.sleepQuality != null) d.sleepQuality = r.sleepQuality;
+      if (d.cyclePhase   == null && r.cyclePhase   != null) d.cyclePhase   = r.cyclePhase;
+      if (d.medication   == null && r.medication   != null) d.medication   = r.medication;
+      if (d.takenMeds    == null && (r.takenMeds || []).length) d.takenMeds = r.takenMeds;
+    });
+    saveDailyStatusObj(all);
+    localStorage.setItem('dailyStatus_migrated', 'true');
+  } catch (e) {}
+}
+
+/* 생리 기록 사용 설정 (기본 ON) */
+function isPeriodTrackingOn() {
+  const v = localStorage.getItem('usePeriodTracking');
+  return v === null ? true : v === 'true';
+}
+function setPeriodTracking(on) {
+  localStorage.setItem('usePeriodTracking', on ? 'true' : 'false');
+  applyPeriodTrackingUI();
+}
+function applyPeriodTrackingUI() {
+  const on = isPeriodTrackingOn();
+  document.querySelectorAll('.period-section').forEach(el => {
+    el.style.display = on ? '' : 'none';
+  });
+  const toggle = document.getElementById('period-tracking-toggle');
+  if (toggle) toggle.classList.toggle('on', on);
+}
+
 // 로컬 시간 기준 YYYY-MM-DD 반환 (UTC 기준인 toISOString 대신 사용)
 function getLocalYMD(date) {
   const y = date.getFullYear();
@@ -7208,17 +7341,18 @@ function exportCSV() {
     const dt = new Date(r.createdAt);
     const date = getLocalYMD(dt);
     const time = dt.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
+    const ds = getDailyStatusForRecord(r);
     return [
       date, time,
       (r.emotions || []).join(' '),
       r.intensity ?? '',
       RISK_LABEL[r.riskLevel] || '',
       (r.causes || []).join(' '),
-      r.sleepHour != null ? r.sleepHour : '',
-      sleepQMap[r.sleepQuality] || '',
-      CYCLE_LABEL[r.cyclePhase] || '',
-      medMap[r.medication] || '',
-      (r.takenMeds || []).join(' '),
+      ds.sleepHour != null ? ds.sleepHour : '',
+      sleepQMap[ds.sleepQuality] || '',
+      CYCLE_LABEL[ds.cyclePhase] || '',
+      medMap[ds.medication] || '',
+      (ds.takenMeds || []).join(' '),
       r.memo || '',
       r.retro || '',
     ].map(escapeCsv).join(',');
@@ -7279,17 +7413,19 @@ function renderMedPattern() {
 
   const now = new Date();
   const within = (r, days) => (now - new Date(r.createdAt)) / 86400000 <= days;
-  // 성공률: '복용' / ('복용' + '빼먹음') — 해당없음/단약 등은 분모 제외
+  const medOf = r => getDailyStatusForRecord(r).medication;
+  // 성공률: 날짜 단위로 '복용'/('복용'+'빼먹음') — 같은 날 중복 제거
   const successRate = days => {
-    const rs = records.filter(r => within(r, days) && (r.medication === 'taken' || r.medication === 'missed'));
+    const entries = getDailyStatusEntriesForRecords(records.filter(r => within(r, days)));
+    const rs = entries.filter(d => d.medication === 'taken' || d.medication === 'missed');
     if (rs.length === 0) return null;
-    return Math.round(rs.filter(r => r.medication === 'taken').length / rs.length * 100);
+    return Math.round(rs.filter(d => d.medication === 'taken').length / rs.length * 100);
   };
   const rate7  = successRate(7);
   const rate30 = successRate(30);
 
-  // 연속 복용 일수: 오늘(또는 어제)부터 거꾸로, 그날 'taken'이 하나라도 있으면 연속
-  const takenDays = new Set(records.filter(r => r.medication === 'taken').map(r => getLocalYMD(new Date(r.createdAt))));
+  // 연속 복용 일수: 오늘(또는 어제)부터 거꾸로, 그날 'taken'이면 연속
+  const takenDays = new Set(records.filter(r => medOf(r) === 'taken').map(r => getLocalYMD(new Date(r.createdAt))));
   let streak = 0;
   const cursor = new Date();
   for (let i = 0; i < 60; i++) {
@@ -7298,8 +7434,8 @@ function renderMedPattern() {
     else { if (i === 0 && !takenDays.has(ymd)) { cursor.setDate(cursor.getDate() - 1); continue; } break; }
   }
 
-  // 30일 누락 횟수
-  const missCount = records.filter(r => within(r, 30) && r.medication === 'missed').length;
+  // 30일 누락 일수 (날짜 단위)
+  const missCount = getDailyStatusEntriesForRecords(records.filter(r => within(r, 30))).filter(d => d.medication === 'missed').length;
 
   // 복용/미복용 날 평균 위험도 (RISK_ORDER 평균 → 라벨)
   const riskAvgLabel = list => {
@@ -7309,8 +7445,8 @@ function renderMedPattern() {
     const idx = Math.round(avg);
     return RISK_LABEL[Object.keys(RISK_ORDER).find(k => RISK_ORDER[k] === idx)] || '안전';
   };
-  const takenRisk  = riskAvgLabel(records.filter(r => r.medication === 'taken'));
-  const missedRisk = riskAvgLabel(records.filter(r => r.medication === 'missed'));
+  const takenRisk  = riskAvgLabel(records.filter(r => medOf(r) === 'taken'));
+  const missedRisk = riskAvgLabel(records.filter(r => medOf(r) === 'missed'));
 
   const fmtRate = v => v == null ? '—' : v + '%';
   wrap.innerHTML = `
@@ -7469,7 +7605,10 @@ function renderTop5() {
   };
   const emo = countBy(r => r.emotions);
   const cause = countBy(r => r.causes);
-  const meds = countBy(r => r.takenMeds);
+  // 복용약은 날짜 단위(중복 제거)로 집계
+  const medDayMap = {};
+  getDailyStatusEntriesForRecords(recent).forEach(d => (d.takenMeds || []).forEach(v => { if (v) medDayMap[v] = (medDayMap[v] || 0) + 1; }));
+  const meds = Object.entries(medDayMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   const block = (title, arr) => {
     if (arr.length === 0) return `<div class="top5-block"><div class="top5-block-title">${title}</div><div class="top5-empty">기록 없음</div></div>`;
@@ -7659,6 +7798,8 @@ function renderCycleAnalysis() {
   const card = document.getElementById('cycle-analysis-card');
   const wrap = document.getElementById('cycle-analysis-wrap');
   if (!card || !wrap) return;
+  // 생리 기록 사용 OFF면 분석 영역 숨김 (데이터는 보존)
+  if (!isPeriodTrackingOn()) { card.style.display = 'none'; return; }
   const c = loadCycleSettings();
   if (!c) { card.style.display = 'none'; return; }
   card.style.display = '';
@@ -7756,9 +7897,10 @@ function renderGoalProgress() {
     items.push({ label: '하루 1회 이상 기록', pct: Math.round(ok / 7 * 100), sub: `${ok}/7일` });
   }
   if (g.sleep) {
-    // 수면 기록이 있는 날 중 7시간 이상 비율
-    const slept = days.filter(d => byDay[d].some(r => r.sleepHour != null));
-    const ok = slept.filter(d => byDay[d].some(r => r.sleepHour != null && r.sleepHour >= 7)).length;
+    // 수면 기록이 있는 날 중 7시간 이상 비율 (dailyStatus 기준)
+    const sleepOfDay = d => byDay[d].length ? getDailyStatusForRecord(byDay[d][0]).sleepHour : null;
+    const slept = days.filter(d => sleepOfDay(d) != null);
+    const ok = slept.filter(d => sleepOfDay(d) != null && sleepOfDay(d) >= 7).length;
     items.push({ label: '수면 7시간 이상', pct: slept.length ? Math.round(ok / slept.length * 100) : 0, sub: `${ok}/${slept.length}일` });
   }
   if (g.risk) {
@@ -7846,11 +7988,12 @@ function buildReportDOM() {
   const sortedImp = Object.entries(impCnt).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const riskTotal = Object.values(riskCnt).reduce((a, b) => a + b, 0) || 1;
 
-  // 수면·약 집계
-  const sleeps = recs.map(r => r.sleepHour).filter(v => typeof v === 'number' && !isNaN(v));
+  // 수면·약 집계 — 날짜 단위(중복 제거)
+  const _dailyIns = getDailyStatusEntriesForRecords(recs);
+  const sleeps = _dailyIns.map(d => d.sleepHour).filter(v => typeof v === 'number' && !isNaN(v));
   const avgSleep = sleeps.length ? (sleeps.reduce((a,b)=>a+b,0)/sleeps.length).toFixed(1) : '—';
-  const medRecs = recs.filter(r => r.medication === 'taken' || r.medication === 'missed');
-  const medTaken = recs.filter(r => r.medication === 'taken').length;
+  const medRecs = _dailyIns.filter(d => d.medication === 'taken' || d.medication === 'missed');
+  const medTaken = _dailyIns.filter(d => d.medication === 'taken').length;
   const medRate = medRecs.length ? Math.round(medTaken / medRecs.length * 100) : null;
   const highRiskCnt = (riskCnt.orange || 0) + (riskCnt.red || 0);
 
@@ -7972,8 +8115,8 @@ function buildReportPatternText(recs, topEmo, riskCnt) {
   const highRisk = (riskCnt.orange || 0) + (riskCnt.red || 0);
   if (highRisk > 0) parts.push(`주의 이상 위험도가 <b>${highRisk}회</b> 있었어요. 힘든 순간엔 도움을 요청해도 괜찮아요.`);
   else parts.push('위험도가 대체로 안정적이었어요.');
-  // 수면-감정 연계
-  const lowSleep = recs.filter(r => r.sleepHour != null && r.sleepHour <= 5);
+  // 수면-감정 연계 (날짜 단위)
+  const lowSleep = getDailyStatusEntriesForRecords(recs).filter(d => d.sleepHour != null && d.sleepHour <= 5);
   if (lowSleep.length >= 2) parts.push(`수면이 부족한 날(${lowSleep.length}일)이 있었어요. 수면과 감정의 관계도 살펴보세요.`);
   return parts.join(' ');
 }
@@ -8108,6 +8251,8 @@ function startApp() {
   refreshCycleSettingUI();  // 월경주기 설정 입력칸 복원 (3번)
   refreshGoalSettingUI();   // 감정 목표 체크 복원 (14번)
   refreshMemoPreviewUI();   // 📝 메모 미리보기 설정 복원 (V1.7)
+  migrateDailyStatusIfNeeded();  // 📅 dailyStatus 1회 마이그레이션
+  applyPeriodTrackingUI();       // 생리 기록 ON/OFF 적용
 
   // 최초 실행이면 온보딩 표시 (PIN/앱 진입과 별개로 위에 덮임)
   if (!hasSeenOnboarding()) openOnboarding();
