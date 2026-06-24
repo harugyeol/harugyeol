@@ -5273,7 +5273,7 @@ function renderClinicReport() {
     ${row('주의·경고 이상', `${highRisk}일`)}
     ${row('자주 나타난 원인', topCauseText)}
     ${row('충동 기록', `${impulseN}회`)}
-    ${row('약 복용 누락', `${medMissN}회`)}
+    ${row('약 복용 누락', `${medMissN}일`)}
     ${row('메모', memoText)}`;
 }
 
@@ -5358,7 +5358,7 @@ function renderAutoRetro() {
   }
   if (avgInt != null) lines.push(`평균 감정 강도는 <b>${avgInt}/10</b>이었어요.`);
   if (impulseN > 0) lines.push(`충동 기록은 <b>${impulseN}회</b> 있었어요.`);
-  if (medMissN > 0) lines.push(`약 복용을 놓친 날이 <b>${medMissN}회</b> 있었어요.`);
+  if (medMissN > 0) lines.push(`약 복용을 놓친 날이 <b>${medMissN}일</b> 있었어요.`);
 
   // 마무리 제안
   let suggestion = '';
@@ -6559,41 +6559,47 @@ function renderPatternInsights() {
   const POS = ['평온', '안정', '기쁨', '설렘', '희망', '감사'];
   const dsOf = r => getDailyStatusForRecord(r);
 
+  // 날짜 단위 카운트 helper (표시 문구는 "며칠" 기준)
+  const dayCount = list => new Set(list.map(r => getDateKey(r.createdAt))).size;
+
   // ① 수면 부족(≤4h)과 위험도 관계
   const lowSleep = recs.filter(r => dsOf(r).sleepHour != null && dsOf(r).sleepHour <= 4);
-  if (lowSleep.length >= 2) {
+  const lowSleepDays = dayCount(lowSleep);
+  if (lowSleepDays >= 2) {
     const badRate = Math.round(lowSleep.filter(isBad).length / lowSleep.length * 100);
     const overallBad = Math.round(recs.filter(isBad).length / recs.length * 100);
     if (badRate > overallBad) {
       insights.push(`<span class="ic">😴</span>수면이 4시간 이하인 날은 위험·경고 비율이 <b>${badRate}%</b>로, 전체 평균(${overallBad}%)보다 높았어요. 수면이 마음 상태와 이어져 있을 수 있어요.`);
     } else {
-      insights.push(`<span class="ic">😴</span>수면 4시간 이하인 날이 ${lowSleep.length}번 있었어요. 충분한 휴식이 도움이 될 수 있어요.`);
+      insights.push(`<span class="ic">😴</span>수면 4시간 이하인 날이 ${lowSleepDays}일 있었어요. 충분한 휴식이 도움이 될 수 있어요.`);
     }
   }
 
   // ② 약 빼먹음과 감정 변화
   const missed = recs.filter(r => dsOf(r).medication === 'missed');
-  if (missed.length >= 1) {
+  const missedDays = dayCount(missed);
+  if (missedDays >= 1) {
     const avgMissed = avgIntensity(missed);
     const taken = recs.filter(r => dsOf(r).medication === 'taken');
     if (taken.length >= 1) {
       const avgTaken = avgIntensity(taken);
       const cmp = avgMissed > avgTaken ? '높았어요' : '낮았어요';
-      insights.push(`<span class="ic">💊</span>약을 빼먹은 날(${missed.length}회)의 평균 감정 강도는 <b>${avgMissed.toFixed(1)}</b>로, 복용한 날(${avgTaken.toFixed(1)})보다 ${cmp}.`);
+      insights.push(`<span class="ic">💊</span>약을 빼먹은 날(${missedDays}일)의 평균 감정 강도는 <b>${avgMissed.toFixed(1)}</b>로, 복용한 날(${avgTaken.toFixed(1)})보다 ${cmp}.`);
     } else {
-      insights.push(`<span class="ic">💊</span>최근 30일 동안 약을 빼먹은 날이 ${missed.length}번 있었어요.`);
+      insights.push(`<span class="ic">💊</span>최근 30일 동안 약을 빼먹은 날이 ${missedDays}일 있었어요.`);
     }
   }
 
   // ③ PMS/생리 기간 감정 변화 (생리 기록 사용 시에만)
   const pmsRecs = isPeriodTrackingOn() ? recs.filter(r => { const c = dsOf(r).cyclePhase; return c === 'pms' || c === 'period'; }) : [];
-  if (pmsRecs.length >= 2) {
+  const pmsDays = dayCount(pmsRecs);
+  if (pmsDays >= 2) {
     const avgPms = avgIntensity(pmsRecs);
     const others = recs.filter(r => { const c = dsOf(r).cyclePhase; return !(c === 'pms' || c === 'period'); });
     if (others.length >= 1) {
       const avgOther = avgIntensity(others);
       const cmp = avgPms > avgOther ? '더 강하게' : '비슷하거나 낮게';
-      insights.push(`<span class="ic">🌙</span>PMS·생리 기간(${pmsRecs.length}회)의 감정 강도는 평균 <b>${avgPms.toFixed(1)}</b>로 평소(${avgOther.toFixed(1)})보다 ${cmp} 나타났어요.`);
+      insights.push(`<span class="ic">🌙</span>PMS·생리 기간(${pmsDays}일)의 감정 강도는 평균 <b>${avgPms.toFixed(1)}</b>로 평소(${avgOther.toFixed(1)})보다 ${cmp} 나타났어요.`);
     }
   }
 
