@@ -4052,6 +4052,7 @@ function closeSaveSummary() {
    ⑪-B 기록 수정 모드 진입
    ===================================================== */
 function editRecord(id) {
+  console.log('editRecord called:', id);
   const r = getRecords().find(rec => rec.id === id);
   if (!r) { showToast('기록을 찾을 수 없어요.'); return; }
 
@@ -4600,26 +4601,53 @@ function toggleCardMenu(id, ev) {
   menu.id = 'floating-card-menu';
   menu.dataset.recId = id;
   menu.innerHTML = `
-    <button onclick="editRecord('${id}'); closeCardMenu();">✏️ 수정하기</button>
-    <button class="danger" onclick="deleteRecord('${id}'); closeCardMenu();">🗑 삭제하기</button>
-    <button onclick="closeCardMenu();">취소</button>`;
+    <button type="button" data-action="edit">✏️ 수정하기</button>
+    <button type="button" data-action="delete" class="danger">🗑 삭제하기</button>
+    <button type="button" data-action="cancel">취소</button>`;
   document.body.appendChild(menu);
+
+  // ── 버튼 이벤트를 addEventListener로 명확히 연결 (모바일 클릭 씹힘 방지)
+  const editBtn   = menu.querySelector('[data-action="edit"]');
+  const deleteBtn = menu.querySelector('[data-action="delete"]');
+  const cancelBtn = menu.querySelector('[data-action="cancel"]');
+
+  const handleEdit = function(e) {
+    e.preventDefault(); e.stopPropagation();
+    closeCardMenu();
+    editRecord(id);
+  };
+  const handleDelete = function(e) {
+    e.preventDefault(); e.stopPropagation();
+    closeCardMenu();
+    deleteRecord(id);
+  };
+  const handleCancel = function(e) {
+    e.preventDefault(); e.stopPropagation();
+    closeCardMenu();
+  };
+  // click + touchend 둘 다 바인딩하여 모바일/데스크톱 모두에서 확실히 실행
+  editBtn.addEventListener('click', handleEdit);
+  editBtn.addEventListener('touchend', handleEdit);
+  deleteBtn.addEventListener('click', handleDelete);
+  deleteBtn.addEventListener('touchend', handleDelete);
+  cancelBtn.addEventListener('click', handleCancel);
+  cancelBtn.addEventListener('touchend', handleCancel);
 
   // 클릭한 ⋯ 버튼 기준으로 위치 잡기
   const btn = ev && ev.currentTarget ? ev.currentTarget : null;
-  const rect = btn ? btn.getBoundingClientRect() : { bottom: 80, right: window.innerWidth - 20 };
+  const rect = btn ? btn.getBoundingClientRect() : { bottom: 80, top: 40, right: window.innerWidth - 20 };
   const mw = 160;
   let left = Math.min(rect.right - mw, window.innerWidth - mw - 8);
   if (left < 8) left = 8;
   let top = rect.bottom + 6;
-  // 화면 아래로 넘치면 버튼 위로
   if (top + 150 > window.innerHeight) top = rect.top - 150;
   menu.style.left = left + 'px';
   menu.style.top  = Math.max(8, top) + 'px';
 
-  // 바깥 클릭/스크롤 시 닫기
+  // 바깥 클릭/스크롤 시 닫기 — 메뉴 내부 탭은 위 핸들러가 먼저 처리하도록 메뉴 자신은 제외
   setTimeout(() => {
-    document.addEventListener('click', onOutsideMenuClick, { once: true });
+    document.addEventListener('click', onOutsideMenuClick, true);
+    document.addEventListener('touchend', onOutsideMenuClick, true);
     document.addEventListener('scroll', closeCardMenu, { once: true, capture: true });
   }, 0);
 }
@@ -4627,7 +4655,13 @@ function onOutsideMenuClick(e) {
   const menu = document.getElementById('floating-card-menu');
   if (menu && !menu.contains(e.target)) closeCardMenu();
 }
+function onOutsideMenuClick(e) {
+  const menu = document.getElementById('floating-card-menu');
+  if (menu && !menu.contains(e.target)) closeCardMenu();
+}
 function closeCardMenu() {
+  document.removeEventListener('click', onOutsideMenuClick, true);
+  document.removeEventListener('touchend', onOutsideMenuClick, true);
   document.getElementById('floating-card-menu')?.remove();
 }
 
