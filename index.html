@@ -391,6 +391,29 @@
     .record-bar.orange { background: var(--risk-orange); }
     .record-bar.red    { background: var(--risk-red); }
     .record-body { flex: 1; padding: 16px; min-width: 0; }
+    /* 날짜별 그룹 아코디언 (일기장 느낌) */
+    .date-group { margin-bottom: 14px; }
+    .date-group-header {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; padding: 14px 16px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--r-card);
+      font-family: var(--font); cursor: pointer; text-align: left;
+      -webkit-tap-highlight-color: transparent; transition: background var(--t-fast) var(--ease);
+    }
+    .date-group-header:active { background: var(--accent-soft); }
+    .dg-head-left { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+    .dg-date { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; }
+    .dg-count { font-size: 12px; color: var(--muted); }
+    .dg-head-right { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .dg-emojis { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dg-arrow { font-size: 17px; color: var(--muted); transition: transform var(--t-base) var(--ease); flex-shrink: 0; }
+    .date-group.open .dg-arrow { transform: rotate(90deg); }
+    .date-group-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height var(--t-slow) var(--ease), opacity var(--t-base) var(--ease);
+      opacity: 0;
+    }
+    .date-group.open .date-group-body { max-height: 6000px; opacity: 1; padding-top: 10px; }
     .record-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .record-date { font-size: var(--fs-meta); color: var(--muted); font-weight: 500; }
     /* V1.8 — 위험도 강조 낮춤: 작은 점 형태 (왼쪽 컬러바가 주 신호) */
@@ -1202,7 +1225,28 @@
     .risk-signal-item:last-child { padding-bottom: 2px; }
     .risk-signal-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
 
-    /* ===== 카드 디자인 통일 (radius 토큰, 그림자 최소) ===== */
+    /* ===== 설정: iOS 스타일 플랫 리스트 (밤티 제거) ===== */
+    #page-settings .settings-title { font-size: 26px; font-weight: 800; margin: 4px 0 20px; }
+    .settings-group-label {
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      margin: 24px 2px 8px; letter-spacing: 0.01em;
+    }
+    .settings-group {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    /* 설정 페이지 안의 아코디언을 평평한 리스트 행으로 */
+    #page-settings .settings-group .acc-item {
+      margin: 0 !important; border: none !important; border-radius: 0 !important;
+      box-shadow: none !important; background: none !important;
+      border-bottom: 1px solid var(--border) !important;
+    }
+    #page-settings .settings-group .acc-item:last-child { border-bottom: none !important; }
+    #page-settings .settings-group .acc-header {
+      padding: 15px 16px; font-size: 15px; font-weight: 500; color: var(--text);
+    }
+    #page-settings .settings-group .acc-header span:first-child { font-weight: 500; }
+    #page-settings .acc-arrow { color: var(--muted); }
     .section-card, .settings-card {
       border-radius: var(--r-card) !important;
     }
@@ -1461,16 +1505,17 @@
 
     /* 오늘의 기록 상태 카드 */
     .home-today-card {
-      border-radius: 22px; padding: 22px; margin-bottom: 16px;
+      border-radius: var(--r-card); padding: 20px; margin-bottom: 16px;
       border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
       transition: transform .15s ease;
     }
     html.dark-mode .home-today-card { box-shadow: none; }
-    .home-today-card.empty {
-      background: var(--accent-soft); border-color: transparent; text-align: center;
-      cursor: pointer;
+    .home-today-card.empty-quiet {
+      background: var(--surface); display: flex; align-items: center; gap: 10px;
+      padding: 16px 18px;
     }
-    .home-today-card.empty:active { transform: scale(0.98); }
+    .home-today-quiet-emoji { font-size: 18px; }
+    .home-today-quiet-text { font-size: 13.5px; color: var(--muted); }
     .home-today-emoji { font-size: 40px; display: block; margin-bottom: 8px; }
     .home-today-text { font-size: 15px; font-weight: 600; color: var(--text); }
     .home-today-cta { font-size: 13px; color: var(--accent); font-weight: 700; margin-top: 8px; }
@@ -1662,22 +1707,6 @@
     /* ▼ 상세 기록 컨테이너 (기본 접힘) */
     .record-detail { display: none; margin-top: 8px; }
     .record-detail.open { display: block; }
-
-    /* ===== ➕ FAB ===== */
-    .fab {
-      position: fixed; right: 18px; bottom: calc(70px + env(safe-area-inset-bottom));
-      width: 56px; height: 56px; border-radius: 50%; border: none;
-      background: var(--accent); color: #fff; font-size: 30px; font-weight: 300;
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
-      box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 45%, transparent);
-      z-index: 90; -webkit-tap-highlight-color: transparent;
-      transition: transform .2s cubic-bezier(0.34,1.56,0.64,1), box-shadow .2s ease;
-    }
-    @supports not (box-shadow: 0 0 0 color-mix(in srgb, red, blue)) {
-      .fab { box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
-    }
-    .fab:active { transform: scale(0.9) rotate(90deg); }
-    .fab:hover { transform: scale(1.05); }
 
     /* 캘린더 페이지 제목 */
     .cal-page-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 16px; }
@@ -2112,23 +2141,22 @@
   <!-- 위험도 경고 배너 (필요 시 JS가 표시) -->
   <div id="home-risk-banner"></div>
 
-  <!-- 오늘의 안내 카드 -->
+  <!-- 인사 카드 -->
   <div class="home-invite-card">
     <div class="home-invite-title">오늘 하루는 어땠나요?</div>
-    <div class="home-invite-text">완벽하게 기록하지 않아도 괜찮아요.<br>생각나는 만큼 천천히 남겨보세요.</div>
-    <button class="home-cta" onclick="goToRecordTab()">기록 시작하기</button>
-    <div class="home-cta-row">
-      <button class="home-cta-sub" onclick="switchTab('list')">최근 기록 보기</button>
-      <button class="home-cta-sub" onclick="switchTab('summary')">돌아보기</button>
-    </div>
+    <div class="home-invite-text">완벽하게 기록하지 않아도 괜찮아요.</div>
+    <button class="home-cta" onclick="goToRecordTab()">기록하기</button>
   </div>
 
-  <!-- 오늘의 한마디 -->
-  <div class="home-quote-card" id="home-quote"><!-- JS로 생성 --></div>
+  <!-- 오늘의 기록 요약 -->
+  <div id="home-today-status"><!-- JS로 생성 --></div>
 
   <!-- 최근 기록 3개 -->
   <div class="home-section-title">최근 기록</div>
   <div id="home-recent"><!-- JS로 생성 --></div>
+
+  <!-- 오늘의 문장 -->
+  <div class="home-quote-card" id="home-quote"><!-- JS로 생성 --></div>
 
 </div>
 
@@ -2700,6 +2728,8 @@
 <div class="page" id="page-settings">
   <div class="settings-title">설정</div>
 
+  <div class="settings-group-label">화면</div>
+  <div class="settings-group">
   <!-- 화면 모드 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2728,6 +2758,9 @@
     </div></div>
   </div>
 
+  </div>
+  <div class="settings-group-label">알림</div>
+  <div class="settings-group">
   <!-- 알림 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2769,6 +2802,9 @@
     </div></div>
   </div>
 
+  </div>
+  <div class="settings-group-label">개인정보</div>
+  <div class="settings-group">
   <!-- 보안 (PIN) -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2823,6 +2859,9 @@
     </div></div>
   </div>
 
+  </div>
+  <div class="settings-group-label">건강</div>
+  <div class="settings-group">
   <!-- 약 복용 관리 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2863,6 +2902,9 @@
     </div></div>
   </div>
 
+  </div>
+  <div class="settings-group-label">기타</div>
+  <div class="settings-group">
   <!-- 기타 설정 (감정 목표) -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2958,11 +3000,9 @@
     </div></div>
   </div>
 
+  </div>
 </div><!-- /page-settings -->
 
-
-<!-- 플로팅 추가 버튼 (FAB) — 기록 탭 외에서 표시 -->
-<button class="fab" id="fab-add" onclick="goToRecordTab()" aria-label="새 기록">+</button>
 
 <!-- 토스트 알림 -->
 <div class="toast" id="toast"></div>
@@ -4108,7 +4148,55 @@ function loadRecordList() {
     el.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><div>조건에 맞는 기록이 없어요.<br>검색어나 필터를 바꿔보세요.</div></div>`;
     return;
   }
-  el.innerHTML = records.map(r => renderRecordCard(r)).join('');
+
+  // 날짜별 그룹화 (최신 날짜 우선)
+  const groups = {};
+  records.forEach(r => {
+    const ymd = getLocalYMD(new Date(r.createdAt));
+    (groups[ymd] = groups[ymd] || []).push(r);
+  });
+  const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+  const todayStr = getLocalYMD(new Date());
+  // 검색·필터가 적용 중이면 모두 펼쳐서 결과를 바로 보이게
+  const anyFilter = (typeof isAnyFilterActive === 'function' && isAnyFilterActive())
+                    || (listFilter.search && listFilter.search.trim());
+
+  el.innerHTML = sortedDates.map((ymd, idx) => {
+    const dayRecs = groups[ymd].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const open = anyFilter || idx === 0;   // 가장 최근 날짜(또는 검색 중)는 펼침
+    const emojis = dayRecs.slice(0, 6).map(r => emotionEmoji((r.emotions || [])[0] || '모르겠음')).join(' ');
+    const cards = dayRecs.map(r => renderRecordCard(r)).join('');
+    return `<div class="date-group ${open ? 'open' : ''}" id="dategroup-${ymd}">
+      <button class="date-group-header" onclick="toggleDateGroup('${ymd}')">
+        <div class="dg-head-left">
+          <span class="dg-date">${formatDateGroupLabel(ymd)}</span>
+          <span class="dg-count">${dayRecs.length}개</span>
+        </div>
+        <div class="dg-head-right">
+          <span class="dg-emojis">${emojis}</span>
+          <span class="dg-arrow">›</span>
+        </div>
+      </button>
+      <div class="date-group-body">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+/* 날짜 그룹 라벨: 'YYYY-MM-DD' → '2026년 6월 24일' (오늘/어제 표시) */
+function formatDateGroupLabel(ymd) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const todayStr = getLocalYMD(new Date());
+  const yest = new Date(); yest.setDate(yest.getDate() - 1);
+  const yestStr = getLocalYMD(yest);
+  const base = `${y}년 ${m}월 ${d}일`;
+  if (ymd === todayStr) return `오늘 · ${base}`;
+  if (ymd === yestStr)  return `어제 · ${base}`;
+  return base;
+}
+
+/* 날짜 그룹 펼치기/접기 */
+function toggleDateGroup(ymd) {
+  document.getElementById('dategroup-' + ymd)?.classList.toggle('open');
 }
 
 // ── 검색/필터 칩 UI 렌더링
@@ -4241,7 +4329,7 @@ function filterRecords(records) {
 
 function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
   const riskLabel  = RISK_LABEL[riskClass];
-  const dateStr    = formatDate(r.createdAt);
+  const dateStr    = formatCardDateTime(r.createdAt);
   const intensityDisplay = r.intensity != null
     ? `<span class="intensity-tag">강도 ${r.intensity}/10</span>` : '';
   const causesText = (r.causes || []).length > 0 ? '원인: ' + r.causes.join(', ') : '';
@@ -4570,8 +4658,9 @@ let selectedDateYMD = getLocalYMD(new Date());
 function loadHome() {
   applyBranding();
   renderHomeRiskBanner();
-  renderHomeQuote();
+  renderHomeTodayStatus();
   renderHomeRecent();
+  renderHomeQuote();
 }
 
 function applyBranding() {
@@ -4638,10 +4727,9 @@ function renderHomeTodayStatus() {
   const todayRecs = getRecords().filter(r => r.createdAt && getLocalYMD(new Date(r.createdAt)) === todayStr);
 
   if (todayRecs.length === 0) {
-    el.innerHTML = `<div class="home-today-card empty" onclick="switchTab('record')">
-      <div class="home-today-emoji">🌿</div>
-      <div class="home-today-text">오늘의 감정을 기록해보세요</div>
-      <div class="home-today-cta">기록하러 가기 →</div>
+    el.innerHTML = `<div class="home-today-card empty-quiet">
+      <span class="home-today-quiet-emoji">🌙</span>
+      <span class="home-today-quiet-text">오늘은 아직 기록이 없어요.</span>
     </div>`;
     return;
   }
@@ -6582,6 +6670,12 @@ function formatDate(isoStr) {
   return new Date(isoStr).toLocaleString('ko-KR', {
     year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit',
   });
+}
+/* 카드용 간결한 날짜·시간: 2026.06.24 08:42 */
+function formatCardDateTime(isoStr) {
+  const d = new Date(isoStr);
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 function escapeHtml(str) {
   return String(str)
