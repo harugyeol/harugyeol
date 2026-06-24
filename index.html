@@ -1537,11 +1537,77 @@
       opacity: 1; max-height: 2000px; overflow: visible; pointer-events: auto;
       padding-top: 18px; padding-bottom: 18px; margin-bottom: 14px; border-width: 1px;
     }
+    /* 잠금 방식 선택 (V1.2) */
+    .lock-mode-group { display: flex; flex-direction: column; gap: 8px; }
+    .lock-mode-btn {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+      width: 100%; padding: 12px 14px; text-align: left;
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
+      font-family: var(--font); cursor: pointer; -webkit-tap-highlight-color: transparent;
+      transition: border-color .15s, background .15s;
+    }
+    .lock-mode-btn.active { border-color: var(--accent); background: var(--accent-soft); }
+    .lock-mode-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .lock-mode-btn.active .lock-mode-name { color: var(--accent); }
+    .lock-mode-desc { font-size: 12px; color: var(--muted); }
+
     /* 단계 안내 (감정 선택 전) */
     .step-hint {
       text-align: center; font-size: 13px; color: var(--muted); padding: 8px 0 2px;
     }
     #page-record.steps-unlocked .step-hint { display: none; }
+
+    /* ⭐ 초간편 기록 (V1.2) */
+    .simple-record { margin-top: 4px; }
+    .simple-memo-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 18px 18px 14px; margin-bottom: 18px;
+    }
+    .simple-memo-q { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+    .simple-memo-hint { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+    .simple-memo-input {
+      width: 100%; margin-top: 12px; padding: 12px 14px; box-sizing: border-box;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+      font-family: var(--font); font-size: 14px; color: var(--text); line-height: 1.6;
+      resize: none; outline: none; transition: border-color .15s;
+    }
+    .simple-memo-input:focus { border-color: var(--accent); }
+    .simple-emo-label { font-size: 13.5px; font-weight: 600; color: var(--text); text-align: center; margin-bottom: 14px; }
+    .simple-emo-row {
+      display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .simple-emo-btn {
+      width: 60px; height: 72px; border: 1.5px solid var(--border); background: var(--surface);
+      border-radius: 16px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+      transition: transform .1s, border-color .15s, background .15s;
+    }
+    .simple-emo-btn:active { transform: scale(.94); }
+    .simple-emo-btn.selected { border-color: var(--accent); background: var(--accent-soft); }
+    .simple-emo-emoji { font-size: 26px; line-height: 1; }
+    .simple-emo-name { font-size: 11px; font-weight: 600; color: var(--muted); }
+    .simple-emo-btn.selected .simple-emo-name { color: var(--accent); }
+    .simple-save-btn {
+      width: 100%; height: 52px; background: var(--accent); color: #fff; border: none;
+      border-radius: 999px; font-family: var(--font); font-size: 15.5px; font-weight: 700;
+      cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .08s, opacity .15s;
+    }
+    .simple-save-btn:active { transform: scale(.98); opacity: .92; }
+    .detail-toggle-btn {
+      width: 100%; height: 44px; margin-top: 10px; background: none;
+      border: 1px solid var(--border); border-radius: 999px;
+      font-family: var(--font); font-size: 13.5px; font-weight: 600; color: var(--muted);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center; gap: 4px; transition: background .15s;
+    }
+    .detail-toggle-btn:active { background: var(--accent-soft); }
+    .detail-toggle-arrow { transition: transform .25s; font-size: 16px; }
+    .detail-toggle-btn.open .detail-toggle-arrow { transform: rotate(90deg); }
+    .simple-philosophy { text-align: center; font-size: 12px; color: var(--muted); margin-top: 16px; letter-spacing: 0.01em; }
+
+    /* ▼ 상세 기록 컨테이너 (기본 접힘) */
+    .record-detail { display: none; margin-top: 8px; }
+    .record-detail.open { display: block; }
 
     /* ===== ➕ FAB ===== */
     .fab {
@@ -1994,6 +2060,29 @@
     </div>
   </div>
 
+  <!-- ⭐ 초간편 기록 (V1.2) — 메모 한 줄 + 대표 감정만으로 저장 -->
+  <div class="simple-record">
+    <div class="simple-memo-card">
+      <div class="simple-memo-q">오늘 무슨 일이 있었나요?</div>
+      <div class="simple-memo-hint">한 줄만 적어도 괜찮아요. 비워둬도 돼요.</div>
+      <textarea class="simple-memo-input" id="quick-memo-input"
+        placeholder="예: 오늘은 그냥 좀 지쳤다" rows="2"></textarea>
+    </div>
+
+    <div class="simple-emo-label">지금 마음에 가까운 감정을 골라보세요</div>
+    <div class="simple-emo-row" id="simple-emo-row"><!-- JS로 생성 --></div>
+
+    <button class="simple-save-btn" id="simple-save-btn" onclick="saveRecord()">기록 저장하기</button>
+    <button class="detail-toggle-btn" id="detail-toggle-btn" onclick="toggleDetailMode()">
+      <span id="detail-toggle-text">상세 기록 펼치기</span>
+      <span class="detail-toggle-arrow" id="detail-toggle-arrow">›</span>
+    </button>
+    <div class="simple-philosophy">완벽하게 기록하지 않아도 괜찮아요.</div>
+  </div>
+
+  <!-- ▼ 상세 기록 (기본 접힘, 필요할 때만 펼침) -->
+  <div class="record-detail" id="record-detail">
+
   <!-- 1. 감정 선택 (복수 선택) -->
   <div class="section-card step-card" data-step="1">
     <div class="step-badge">STEP 1</div>
@@ -2137,6 +2226,8 @@
     <div class="record-progress-track"><div class="record-progress-fill" id="record-progress-fill"></div></div>
     <div class="record-progress-items" id="record-progress-items"><!-- JS로 생성 --></div>
   </div>
+
+  </div><!-- /record-detail -->
 
 </div><!-- /page-record -->
 
@@ -2542,6 +2633,25 @@
       <button class="perm-btn" id="pin-set-btn"    onclick="startSetPin()">🔒 PIN 설정하기</button>
       <button class="perm-btn" id="pin-change-btn" style="margin-top:8px; display:none;" onclick="startChangePin()">🔁 PIN 변경하기</button>
       <button class="perm-btn" id="pin-remove-btn" style="margin-top:8px; display:none;" onclick="removePin()">🗑 PIN 삭제하기</button>
+
+      <!-- 잠금 방식 선택 (V1.2) — PIN 설정 시에만 표시 -->
+      <div id="lock-mode-section" style="display:none; margin-top:16px;">
+        <div class="settings-desc" style="margin-bottom:8px;">잠금 방식</div>
+        <div class="lock-mode-group" id="lock-mode-group">
+          <button class="lock-mode-btn" data-mode="always" onclick="setLockMode('always')">
+            <span class="lock-mode-name">항상 잠금</span>
+            <span class="lock-mode-desc">앱을 열 때마다 PIN 입력</span>
+          </button>
+          <button class="lock-mode-btn" data-mode="grace" onclick="setLockMode('grace')">
+            <span class="lock-mode-name">일정 시간 유지</span>
+            <span class="lock-mode-desc">잠깐 나갔다 와도 5분간 유지</span>
+          </button>
+          <button class="lock-mode-btn" data-mode="off" onclick="setLockMode('off')">
+            <span class="lock-mode-name">잠금 사용 안 함</span>
+            <span class="lock-mode-desc">PIN은 설정하되 자동 잠금 끄기</span>
+          </button>
+        </div>
+      </div>
     </div></div>
   </div>
 
@@ -3023,6 +3133,7 @@ function toggleTakenMed(name) {
 function init() {
   applyBranding();         // 브랜드명/부제 반영
   renderEmotionChips();
+  renderSimpleEmotions();   // ⭐ 초간편 기록 대표 감정 (V1.2)
   renderQuickEmotions();   // 빠른 감정 선택 (8번)
   renderIntensityBtns();
   renderSleepHourBtns();
@@ -3070,6 +3181,40 @@ function init() {
 
   // 첫 화면: 홈 탭 로드
   switchTab('home');
+
+  updateWidgetSummary();   // 위젯 연동용 요약 갱신 (V1.2)
+  handleWidgetDeepLink();  // ?action=record 진입 처리 (V1.2)
+}
+
+/* =====================================================
+   🧩 홈 화면 위젯 연동 준비 (V1.2)
+   - 위젯/외부에서 읽을 수 있도록 '오늘 기록 수' 요약을 localStorage에 저장
+   - URL ?action=record 로 진입하면 바로 기록 탭으로 이동 (위젯 '바로 기록')
+   ===================================================== */
+function getWidgetSummary() {
+  const todayStr = getLocalYMD(new Date());
+  const todayCount = getRecords().filter(r =>
+    r.createdAt && getLocalYMD(new Date(r.createdAt)) === todayStr).length;
+  return {
+    date: todayStr,
+    todayCount,
+    label: todayCount === 0 ? '오늘 기록 0회' : `오늘 기록 ${todayCount}회`,
+    appName: APP_NAME,
+    updatedAt: Date.now(),
+  };
+}
+function updateWidgetSummary() {
+  try { localStorage.setItem('widgetSummary', JSON.stringify(getWidgetSummary())); } catch (e) {}
+}
+function handleWidgetDeepLink() {
+  try {
+    const params = new URLSearchParams(location.search);
+    if (params.get('action') === 'record') {
+      switchTab('record');
+      if (typeof renderRecordHero === 'function') renderRecordHero();
+      window.scrollTo({ top: 0 });
+    }
+  } catch (e) {}
 }
 
 
@@ -3088,7 +3233,75 @@ function renderEmotionChips() {
 function toggleEmotion(e) {
   state.emotions.has(e) ? state.emotions.delete(e) : state.emotions.add(e);
   document.getElementById('emotion-' + e)?.classList.toggle('selected', state.emotions.has(e));
+  syncSimpleEmotionUI();
   updateStepProgress();
+}
+
+/* ⭐ 초간편 기록 (V1.2) — 대표 감정 5종 */
+const SIMPLE_EMOTIONS = [
+  { name: '기쁨',     emoji: '🙂' },
+  { name: '우울',     emoji: '😭' },
+  { name: '분노',     emoji: '😡' },
+  { name: '피곤',     emoji: '😴' },
+  { name: '모르겠음', emoji: '🤔' },
+];
+function renderSimpleEmotions() {
+  const el = document.getElementById('simple-emo-row');
+  if (!el) return;
+  el.innerHTML = SIMPLE_EMOTIONS.map(s => {
+    const sel = state.emotions.has(s.name) ? ' selected' : '';
+    return `<button class="simple-emo-btn${sel}" id="simple-emo-${s.name}" onclick="toggleSimpleEmotion('${s.name}')">
+      <span class="simple-emo-emoji">${s.emoji}</span>
+      <span class="simple-emo-name">${s.name}</span>
+    </button>`;
+  }).join('');
+}
+function toggleSimpleEmotion(name) {
+  // 상세 칩과 동일한 state를 공유 → toggleEmotion 재사용
+  toggleEmotion(name);
+}
+// state.emotions 변화 시 간편/상세 양쪽 UI 동기화
+function syncSimpleEmotionUI() {
+  SIMPLE_EMOTIONS.forEach(s => {
+    document.getElementById('simple-emo-' + s.name)
+      ?.classList.toggle('selected', state.emotions.has(s.name));
+  });
+}
+
+/* 상세 기록 펼치기/접기 */
+function toggleDetailMode() {
+  const detail = document.getElementById('record-detail');
+  const btn    = document.getElementById('detail-toggle-btn');
+  const txt    = document.getElementById('detail-toggle-text');
+  const page   = document.getElementById('page-record');
+  if (!detail) return;
+  const willOpen = !detail.classList.contains('open');
+  detail.classList.toggle('open', willOpen);
+  btn?.classList.toggle('open', willOpen);
+  if (txt) txt.textContent = willOpen ? '상세 기록 접기' : '상세 기록 펼치기';
+  // 상세를 열면 모든 단계 카드를 한 번에 보여줌 (단계 잠금 해제)
+  if (willOpen) page?.classList.add('steps-unlocked');
+  if (willOpen) {
+    setTimeout(() => detail.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  }
+}
+function collapseDetailMode() {
+  const detail = document.getElementById('record-detail');
+  const btn    = document.getElementById('detail-toggle-btn');
+  const txt    = document.getElementById('detail-toggle-text');
+  detail?.classList.remove('open');
+  btn?.classList.remove('open');
+  if (txt) txt.textContent = '상세 기록 펼치기';
+}
+function expandDetailMode() {
+  const detail = document.getElementById('record-detail');
+  const btn    = document.getElementById('detail-toggle-btn');
+  const txt    = document.getElementById('detail-toggle-text');
+  const page   = document.getElementById('page-record');
+  detail?.classList.add('open');
+  btn?.classList.add('open');
+  if (txt) txt.textContent = '상세 기록 접기';
+  page?.classList.add('steps-unlocked');
 }
 
 // 단계형 진행: 감정 선택 여부에 따라 STEP2~5 노출
@@ -3363,6 +3576,15 @@ function toggleCausesPreview() {
 /* =====================================================
    ⑪ 기록 저장 / 수정
    ===================================================== */
+/* 초간편 메모 + 상세 메모를 하나로 합침 (V1.2)
+   - 둘 다 있고 내용이 다르면 줄바꿈으로 연결, 같으면 하나만 */
+function mergeMemoInputs() {
+  const quick  = (document.getElementById('quick-memo-input')?.value || '').trim();
+  const detail = (document.getElementById('memo-input')?.value || '').trim();
+  if (quick && detail) return (quick === detail) ? quick : `${quick}\n${detail}`;
+  return quick || detail;
+}
+
 function saveRecord() {
   if (state.emotions.size === 0) { showToast('감정을 1개 이상 선택해 주세요.'); return; }
 
@@ -3398,7 +3620,7 @@ function saveRecord() {
     medication:       state.medication,
     cyclePhase:       state.cyclePhase,            // 월경 주기 (1번)
     takenMeds:        [...state.takenMeds],        // 복용한 약 (2번)
-    memo:             document.getElementById('memo-input').value.trim(),
+    memo:             mergeMemoInputs(),
     retro:            document.getElementById('retro-input').value.trim(),  // 한 줄 회고 (6번)
     riskLevel:        risk,
   };
@@ -3423,6 +3645,7 @@ function saveRecord() {
   resetForm();
   checkRiskStreakBanner();   // 저장 후 위기 연속 배너 갱신 (6번)
   renderQuickEmotions();     // 자주 쓴 감정 갱신 (8번)
+  updateWidgetSummary();     // 위젯 요약 갱신 (V1.2)
 }
 
 // ── 저장 완료 요약 카드 표시
@@ -3527,6 +3750,8 @@ function editRecord(id) {
     state.emotions.add(e);
     document.getElementById('emotion-' + e)?.classList.add('selected');
   });
+  syncSimpleEmotionUI();
+  expandDetailMode();   // 상세 항목을 바로 볼 수 있도록 펼침
 
   // 강도 복원
   state.intensity = r.intensity ?? INTENSITY_DEFAULT;
@@ -3604,6 +3829,10 @@ function resetForm() {
   // 감정
   state.emotions.clear();
   document.querySelectorAll('#emotion-chips .chip').forEach(b => b.classList.remove('selected'));
+  syncSimpleEmotionUI();
+  // 초간편 메모 + 상세 패널 초기화 (V1.2)
+  const qm = document.getElementById('quick-memo-input'); if (qm) qm.value = '';
+  collapseDetailMode();
 
   // 강도
   state.intensity = INTENSITY_DEFAULT;
@@ -3935,6 +4164,8 @@ function reuseRecord(id) {
     state.emotions.add(e);
     document.getElementById('emotion-' + e)?.classList.add('selected');
   });
+  syncSimpleEmotionUI();
+  expandDetailMode();   // 상세 항목을 바로 볼 수 있도록 펼침
 
   // 강도 복원
   state.intensity = r.intensity ?? INTENSITY_DEFAULT;
@@ -4013,12 +4244,14 @@ function deleteRecord(id) {
   localStorage.setItem('emotionRecords', JSON.stringify(records));
   document.getElementById('card-' + id)?.remove();
   if (records.length === 0) loadRecordList();
+  updateWidgetSummary();     // 위젯 요약 갱신 (V1.2)
   showToast('기록이 삭제되었어요.');
 }
 function clearAll() {
   if (!confirm('모든 기록을 삭제할까요?\n이 작업은 되돌릴 수 없습니다.')) return;
   localStorage.removeItem('emotionRecords');
   loadRecordList();
+  updateWidgetSummary();     // 위젯 요약 갱신 (V1.2)
   showToast('모든 기록이 삭제되었어요.');
 }
 
@@ -5996,6 +6229,40 @@ function getStoredPin() { try { return localStorage.getItem('appPin') || ''; } c
 function setStoredPin(p) { localStorage.setItem('appPin', p); }
 function clearStoredPin() { localStorage.removeItem('appPin'); }
 
+/* 잠금 방식 (V1.2): 'always'(기본) | 'grace'(5분 유지) | 'off' */
+const LOCK_GRACE_MS = 5 * 60 * 1000;
+function getLockMode() { try { return localStorage.getItem('lockMode') || 'always'; } catch { return 'always'; } }
+function setLockMode(mode) {
+  try { localStorage.setItem('lockMode', mode); } catch (e) {}
+  refreshLockModeUI();
+  showToast(mode === 'always' ? '앱을 열 때마다 잠겨요 🔒'
+          : mode === 'grace'  ? '잠깐 나갔다 와도 5분간 유지돼요'
+          : '자동 잠금을 끄었어요');
+}
+function refreshLockModeUI() {
+  const section = document.getElementById('lock-mode-section');
+  if (section) section.style.display = getStoredPin() ? 'block' : 'none';
+  const mode = getLockMode();
+  document.querySelectorAll('#lock-mode-group .lock-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+}
+// 백그라운드로 나간 시각 기록 (grace 모드 판단용)
+function markAppHidden() { try { sessionStorage.setItem('lastHidden', Date.now().toString()); } catch (e) {} }
+// 앱 진입 시 잠금이 필요한지 판단
+function shouldLockOnEntry() {
+  if (!getStoredPin()) return false;          // PIN 없음
+  const mode = getLockMode();
+  if (mode === 'off') return false;           // 자동 잠금 끔
+  if (mode === 'always') return true;         // 항상 잠금
+  // grace: 마지막으로 나간 시각이 유예시간 이내면 잠그지 않음
+  try {
+    const last = parseInt(sessionStorage.getItem('lastHidden') || '0', 10);
+    if (last && (Date.now() - last) < LOCK_GRACE_MS) return false;
+  } catch (e) {}
+  return true;
+}
+
 // 키패드 렌더 (1~9, 지움, 0, 확인용 백스페이스)
 function renderPinPad() {
   const pad = document.getElementById('pin-pad');
@@ -6115,6 +6382,7 @@ function refreshPinSettingUI() {
   document.getElementById('pin-set-btn').style.display    = has ? 'none'  : 'block';
   document.getElementById('pin-change-btn').style.display = has ? 'block' : 'none';
   document.getElementById('pin-remove-btn').style.display = has ? 'block' : 'none';
+  refreshLockModeUI();
 }
 
 
@@ -6184,6 +6452,7 @@ function quickPickEmotion(emotion) {
   if (!state.emotions.has(emotion)) {
     state.emotions.add(emotion);
     document.getElementById('emotion-' + emotion)?.classList.add('selected');
+    syncSimpleEmotionUI();
     showToast(`'${emotion}' 선택됨`);
   }
 }
@@ -7037,7 +7306,7 @@ function startApp() {
   // 최초 실행이면 온보딩 표시 (PIN/앱 진입과 별개로 위에 덮임)
   if (!hasSeenOnboarding()) openOnboarding();
 
-  if (getStoredPin()) {
+  if (shouldLockOnEntry()) {
     pinAfterUnlock = init;
     openPinOverlay('enter');
   } else {
@@ -7045,7 +7314,22 @@ function startApp() {
   }
 }
 startApp();
+
+/* 잠금 방식 연동: 백그라운드 진입 시각 기록 + 복귀 시 재잠금(always) */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    markAppHidden();
+  } else if (document.visibilityState === 'visible') {
+    // 이미 잠금 화면이 떠 있으면 중복 방지
+    const overlay = document.getElementById('pin-overlay');
+    const alreadyLocked = overlay && overlay.classList.contains('show');
+    if (!alreadyLocked && shouldLockOnEntry()) {
+      pinAfterUnlock = null;     // 단순 재잠금 (init 재실행 불필요)
+      openPinOverlay('enter');
+    }
+  }
+});
+window.addEventListener('pagehide', markAppHidden);
 </script>
 </body>
 </html>
-
