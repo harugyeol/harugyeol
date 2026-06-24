@@ -1316,6 +1316,53 @@
       transition: opacity .22s ease, transform .22s ease;
     }
     .card-menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    /* fixed 팝오버 메뉴 (overflow 클리핑 우회) */
+    .card-menu.floating {
+      position: fixed; right: auto; top: auto; z-index: 1000;
+      opacity: 1; transform: none; pointer-events: auto;
+      animation: cardMenuPop var(--t-fast) var(--ease) both;
+    }
+    @keyframes cardMenuPop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+    /* 📖 기록 자세히 보기 모달 */
+    .rd-modal-overlay {
+      position: fixed; inset: 0; z-index: 1100;
+      background: rgba(30,27,46,0.45); backdrop-filter: blur(2px);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; transition: opacity var(--t-base) var(--ease);
+    }
+    .rd-modal-overlay.show { opacity: 1; }
+    .rd-modal {
+      width: 100%; max-width: 540px; max-height: 86vh; overflow-y: auto;
+      background: var(--surface); border-radius: 24px 24px 0 0;
+      padding: 8px 0 calc(20px + env(safe-area-inset-bottom));
+      transform: translateY(100%); transition: transform var(--t-slow) var(--ease);
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+    }
+    .rd-modal-overlay.show .rd-modal { transform: translateY(0); }
+    .rd-modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px 12px; position: sticky; top: 0; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .rd-modal-title { font-size: 16px; font-weight: 800; color: var(--text); }
+    .rd-modal-close {
+      width: 30px; height: 30px; border: none; background: var(--surface2); color: var(--muted);
+      border-radius: 50%; font-size: 13px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .rd-modal-body { padding: 6px 20px 4px; }
+    .rd-row { display: flex; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+    .rd-row:last-child { border-bottom: none; }
+    .rd-key { flex-shrink: 0; width: 76px; font-size: 13px; color: var(--muted); }
+    .rd-val { flex: 1; font-size: 13.5px; color: var(--text); line-height: 1.55; word-break: break-word; white-space: pre-wrap; }
+    .rd-modal-actions { padding: 12px 20px 0; }
+    .rd-edit-btn {
+      width: 100%; height: 46px; border: none; border-radius: 14px;
+      background: var(--accent); color: #fff; font-family: var(--font);
+      font-size: 14px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent;
+      transition: transform var(--t-fast) var(--ease);
+    }
+    .rd-edit-btn:active { transform: scale(0.98); }
     .card-menu button {
       display: block; width: 100%; text-align: left; padding: 12px 16px; border: none;
       background: none; color: var(--text); font-size: 14px; font-family: inherit; cursor: pointer;
@@ -4421,23 +4468,10 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
   const riskRowHtml = `<div class="detail-row"><span class="dr-key">위험도</span><span class="dr-val">${RISK_LABEL[riskClass] || '안전'}</span></div>`;
   const timeRowHtml = `<div class="detail-row"><span class="dr-key">기록 시간</span><span class="dr-val">${dateStr}</span></div>`;
 
-  // 자세히 보기 안에 들어갈 상세 내용 (감정 전체·원인·충동·약·메모·회고)
+  // 자세히 보기 — 읽기 전용 모달로 열기 (overflow 클리핑 우회)
   const hasDetail = allEmotionsHtml || causesText || metaTags || memoHtml || retroHtml || emergencyBtnHtml || signalTags;
   const detailHtml = hasDetail ? `
-        <div class="record-card-detail" id="detail-${r.id}">
-          <div class="record-card-detail-inner">
-            ${timeRowHtml}
-            ${riskRowHtml}
-            ${allEmotionsHtml}
-            ${causesText ? `<div class="record-causes">${escapeHtml(causesText)}</div>` : ''}
-            ${signalTags ? `<div class="record-meta">${signalTags}</div>` : ''}
-            ${metaTags   ? `<div class="record-meta">${metaTags}</div>` : ''}
-            ${memoHtml}
-            ${retroHtml}
-            ${emergencyBtnHtml ? `<div class="record-actions">${emergencyBtnHtml}</div>` : ''}
-          </div>
-        </div>
-        <button class="record-card-detail-toggle" onclick="toggleRecordDetail('${r.id}', event)" id="detail-btn-${r.id}">
+        <button class="record-card-detail-toggle" onclick="openRecordDetail('${r.id}', event)">
           <span>자세히 보기</span><span class="detail-arrow">›</span>
         </button>` : '';
 
@@ -4451,11 +4485,6 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
             ${riskClass !== 'green' ? `<span class="risk-badge ${riskClass}">${riskLabel}</span>` : ''}
             <div class="card-menu-wrap">
               <button class="card-menu-btn" onclick="toggleCardMenu('${r.id}', event)" aria-label="더보기">⋯</button>
-              <div class="card-menu" id="card-menu-${r.id}">
-                <button onclick="editRecord('${r.id}')">✏️ 수정하기</button>
-                <button class="danger" onclick="deleteRecord('${r.id}')">🗑 삭제하기</button>
-                <button onclick="toggleCardMenu('${r.id}', event)">취소</button>
-              </div>
             </div>
           </div>
         </div>
@@ -4482,14 +4511,124 @@ function toggleRecordDetail(id, ev) {
   btn.querySelector('span').textContent = open ? '접기' : '자세히 보기';
 }
 
-// 기록 카드 ⋯ 메뉴 토글 (하나만 열림, 바깥 클릭 시 닫힘)
-function toggleCardMenu(id, ev) {
+/* 📖 기록 자세히 보기 — 읽기 전용 모달 (모든 항목 표시) */
+function openRecordDetail(id, ev) {
   if (ev) ev.stopPropagation();
-  const menu = document.getElementById('card-menu-' + id);
-  if (!menu) return;
-  const willOpen = !menu.classList.contains('open');
-  document.querySelectorAll('.card-menu.open').forEach(m => m.classList.remove('open'));
-  if (willOpen) menu.classList.add('open');
+  const r = getRecords().find(x => x.id === id);
+  if (!r) { showToast('기록을 찾을 수 없어요.'); return; }
+
+  const dt = new Date(r.createdAt);
+  const timeStr = `${dt.getFullYear()}.${String(dt.getMonth()+1).padStart(2,'0')}.${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+  const riskClass = r.riskLevel || 'green';
+
+  const sleepQualMap = { none:'', bad:'나쁨', ok:'보통', normal:'보통', good:'좋음' };
+  const medMap = { na:'해당 없음', taken:'복용', missed:'빼먹음', stopped:'단약 중', dosechange:'용량 변경', sideeffect:'부작용 있음' };
+  const sigMap = {
+    selfHarmRisk:    { label:'자해 생각',     map:{ flash:'스쳐감', frequent:'자주', specific:'구체적' } },
+    suicidalThought: { label:'죽고 싶은 생각', map:{ tired:'살기 싫음', repeated:'반복', plan:'계획' } },
+    harmToOthersRisk:{ label:'타해/공격성',    map:{ irritable:'예민', urge:'충동', plan:'계획' } },
+  };
+  const signals = Object.entries(sigMap)
+    .filter(([k]) => r[k] && r[k] !== 'none')
+    .map(([k,v]) => `${v.label}(${v.map[r[k]] || r[k]})`).join(', ');
+
+  // 충동 상세
+  let impulseStr = '';
+  if (r.impulseDetail && (r.impulseDetail.types || []).length) {
+    const names = r.impulseDetail.types.map(tid => (IMPULSE_TYPE_MAP[tid] || {}).label || tid).join(', ');
+    const parts = [names];
+    if (r.impulseDetail.strength) parts.push(`강도 ${r.impulseDetail.strength}/10`);
+    if (r.impulseDetail.action)   parts.push(r.impulseDetail.action === 'yes' ? '행동함' : '행동 안 함');
+    if (r.impulseDetail.other)    parts.push(r.impulseDetail.other);
+    if (r.impulseDetail.memo)     parts.push(`"${r.impulseDetail.memo}"`);
+    impulseStr = parts.filter(Boolean).join(' · ');
+  }
+
+  const rows = [
+    ['기록 시간', timeStr],
+    ['감정', (r.emotions || []).join(', ') || '—'],
+    ['강도', r.intensity != null ? `${r.intensity}/10` : '—'],
+    ['원인', (r.causes || []).join(', ') || '—'],
+    ['위험도', RISK_LABEL[riskClass] || '안전'],
+    ['마음 신호', signals || '—'],
+    ['수면', r.sleepHour != null ? `${r.sleepHour}시간${sleepQualMap[r.sleepQuality] ? ' · ' + sleepQualMap[r.sleepQuality] : ''}` : '—'],
+    ['월경주기', CYCLE_LABEL[r.cyclePhase] || '—'],
+    ['약 상태', (r.medication && r.medication !== 'na') ? (medMap[r.medication] || '—') : '해당 없음'],
+    ['복용약', (r.takenMeds || []).length ? r.takenMeds.join(', ') : '—'],
+    ['충동', impulseStr || '—'],
+    ['메모', r.memo ? escapeHtml(r.memo) : '—'],
+    ['한 줄 회고', r.retro ? escapeHtml(r.retro) : '—'],
+  ];
+
+  const rowsHtml = rows.map(([k, v]) =>
+    `<div class="rd-row"><span class="rd-key">${k}</span><span class="rd-val">${v}</span></div>`
+  ).join('');
+
+  closeRecordDetailModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'rd-modal-overlay';
+  overlay.id = 'record-detail-modal';
+  overlay.innerHTML = `
+    <div class="rd-modal" onclick="event.stopPropagation()">
+      <div class="rd-modal-head">
+        <span class="rd-modal-title">기록 자세히 보기</span>
+        <button class="rd-modal-close" onclick="closeRecordDetailModal()" aria-label="닫기">✕</button>
+      </div>
+      <div class="rd-modal-body">${rowsHtml}</div>
+      <div class="rd-modal-actions">
+        <button class="rd-edit-btn" onclick="closeRecordDetailModal(); editRecord('${id}');">✏️ 이 기록 수정하기</button>
+      </div>
+    </div>`;
+  overlay.onclick = closeRecordDetailModal;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('show'));
+}
+function closeRecordDetailModal() {
+  document.getElementById('record-detail-modal')?.remove();
+}
+
+// 기록 카드 ⋯ 메뉴 — overflow:hidden 조상에 잘리지 않도록 fixed 팝오버로 표시
+function toggleCardMenu(id, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const existing = document.getElementById('floating-card-menu');
+  // 같은 카드 메뉴가 이미 열려 있으면 닫기(토글)
+  if (existing && existing.dataset.recId === id) { closeCardMenu(); return; }
+  closeCardMenu();
+
+  const menu = document.createElement('div');
+  menu.className = 'card-menu floating open';
+  menu.id = 'floating-card-menu';
+  menu.dataset.recId = id;
+  menu.innerHTML = `
+    <button onclick="editRecord('${id}'); closeCardMenu();">✏️ 수정하기</button>
+    <button class="danger" onclick="deleteRecord('${id}'); closeCardMenu();">🗑 삭제하기</button>
+    <button onclick="closeCardMenu();">취소</button>`;
+  document.body.appendChild(menu);
+
+  // 클릭한 ⋯ 버튼 기준으로 위치 잡기
+  const btn = ev && ev.currentTarget ? ev.currentTarget : null;
+  const rect = btn ? btn.getBoundingClientRect() : { bottom: 80, right: window.innerWidth - 20 };
+  const mw = 160;
+  let left = Math.min(rect.right - mw, window.innerWidth - mw - 8);
+  if (left < 8) left = 8;
+  let top = rect.bottom + 6;
+  // 화면 아래로 넘치면 버튼 위로
+  if (top + 150 > window.innerHeight) top = rect.top - 150;
+  menu.style.left = left + 'px';
+  menu.style.top  = Math.max(8, top) + 'px';
+
+  // 바깥 클릭/스크롤 시 닫기
+  setTimeout(() => {
+    document.addEventListener('click', onOutsideMenuClick, { once: true });
+    document.addEventListener('scroll', closeCardMenu, { once: true, capture: true });
+  }, 0);
+}
+function onOutsideMenuClick(e) {
+  const menu = document.getElementById('floating-card-menu');
+  if (menu && !menu.contains(e.target)) closeCardMenu();
+}
+function closeCardMenu() {
+  document.getElementById('floating-card-menu')?.remove();
 }
 
 // 개별 기록 PDF 저장 (jsPDF 텍스트 기반 — 미로드 시 안내)
