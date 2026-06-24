@@ -290,18 +290,6 @@
     /* =====================================================
        저장 버튼 (하단 고정)
        =====================================================*/
-    .save-bar {
-      position: fixed; bottom: calc(58px + env(safe-area-inset-bottom)); left: 0; right: 0;
-      padding: 12px 16px;
-      background: var(--bg); border-top: 1px solid var(--border); z-index: 95;
-    }
-    .save-btn {
-      width: 100%; padding: 16px; background: var(--accent); border: none;
-      border-radius: var(--radius); font-family: var(--font); font-size: 16px;
-      font-weight: 700; color: #fff; cursor: pointer;
-      transition: opacity .15s, transform .1s; -webkit-tap-highlight-color: transparent;
-    }
-    .save-btn:active { opacity: .85; transform: scale(.98); }
 
     /* =====================================================
        위험 알림 배너 (빨강 위험도)
@@ -1629,7 +1617,7 @@
     .cal-page-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 16px; }
 
     /* 기록 페이지: 하단 저장바 + 탭바 높이만큼 여백 */
-    #page-record.active { padding-bottom: 140px; }
+    #page-record.active { padding-bottom: 40px; }
 
     /* =====================================================
        V8: 온보딩 + 홈 기록 버튼
@@ -2796,11 +2784,6 @@
 </div><!-- /page-settings -->
 
 
-<!-- 저장 버튼 (기록하기 탭에서만 표시) -->
-<div class="save-bar" id="save-bar">
-  <button class="save-btn" id="save-btn" onclick="saveRecord()">💾 기록 저장하기</button>
-</div>
-
 <!-- 플로팅 추가 버튼 (FAB) — 기록 탭 외에서 표시 -->
 <button class="fab" id="fab-add" onclick="goToRecordTab()" aria-label="새 기록">+</button>
 
@@ -3802,7 +3785,7 @@ function editRecord(id) {
 
   // 수정 모드 UI 변경
   document.getElementById('edit-mode-banner').classList.remove('hidden');
-  document.getElementById('save-btn').textContent = '✏️ 수정 완료';
+  const _sb = document.getElementById('simple-save-btn'); if (_sb) _sb.textContent = '✏️ 수정 완료';
   document.getElementById('greeting-main').textContent = '기록을 수정해요';
 
   updateStepProgress();   // 감정 복원됐으면 전체 단계 노출
@@ -3816,7 +3799,7 @@ function cancelEdit() {
   state.editingId = null;
   resetForm();
   document.getElementById('edit-mode-banner').classList.add('hidden');
-  document.getElementById('save-btn').textContent = '💾 기록 저장하기';
+  const _sb2 = document.getElementById('simple-save-btn'); if (_sb2) _sb2.textContent = '기록 저장하기';
   document.getElementById('greeting-main').textContent = '지금 감정을 기록해요';
   showToast('수정이 취소되었어요.');
 }
@@ -3828,7 +3811,7 @@ function cancelEdit() {
 function resetForm() {
   // 감정
   state.emotions.clear();
-  document.querySelectorAll('#emotion-chips .chip').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('#emotion-chips .emo-card').forEach(b => b.classList.remove('selected'));
   syncSimpleEmotionUI();
   // 초간편 메모 + 상세 패널 초기화 (V1.2)
   const qm = document.getElementById('quick-memo-input'); if (qm) qm.value = '';
@@ -3864,7 +3847,7 @@ function resetForm() {
 
   // 원인
   state.causes.clear();
-  document.querySelectorAll('#cause-sub-panels .chip').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('#cause-sub-panels .cause-check').forEach(b => b.classList.remove('selected'));
   refreshCausesPreview();
 
   // 수면시간
@@ -3893,7 +3876,7 @@ function resetForm() {
   // 수정 모드 초기화
   state.editingId = null;
   document.getElementById('edit-mode-banner').classList.add('hidden');
-  document.getElementById('save-btn').textContent = '💾 기록 저장하기';
+  const _sb3 = document.getElementById('simple-save-btn'); if (_sb3) _sb3.textContent = '기록 저장하기';
   document.getElementById('greeting-main').textContent = '지금 감정을 기록해요';
 
   updateStepProgress();   // 단계 초기화 (감정 비었으므로 STEP2~ 숨김)
@@ -5858,9 +5841,6 @@ function switchTab(tab) {
   // FAB(+)는 기록 탭에서는 숨김(이미 기록 화면), 나머지에서 표시
   const fab = document.getElementById('fab-add');
   if (fab) fab.style.display = (tab === 'record') ? 'none' : 'flex';
-  // 저장 바는 기록 탭에서만
-  const saveBar = document.getElementById('save-bar');
-  if (saveBar) saveBar.style.display = tab === 'record' ? 'block' : 'none';
 
   if (tab === 'home')     loadHome();
   if (tab === 'record')   renderRecordHero();
