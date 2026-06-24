@@ -3753,11 +3753,23 @@ const RADIO_OPT_MAP = {
   impulseTime:   IMPULSE_TIMES,
   sleepQuality: SLEEP_QUALITY,
   medication:   MEDICATION,
+  cyclePhase:   CYCLE_OPTIONS,   // 월경 주기 (누락 버그 수정)
 };
 
 function selectRadio(containerId, stateKey, val) {
   state[stateKey] = val;
-  refreshRadioUI(containerId, RADIO_OPT_MAP[stateKey], stateKey);
+  const opts = RADIO_OPT_MAP[stateKey];
+  if (opts) {
+    refreshRadioUI(containerId, opts, stateKey);
+  } else {
+    // 안전장치: 매핑이 없어도 컨테이너 내 버튼 기준으로 selected 갱신
+    const container = document.getElementById(containerId);
+    if (container) {
+      container.querySelectorAll('.radio-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.id === `${containerId}-${val}`);
+      });
+    }
+  }
   // 위험도 관련 키만 배너 업데이트
   if (['selfHarm','suicidal','harmOthers','impulse'].includes(stateKey)) updateDangerBanner();
   // V9: 충동 '있음' 선택 시 상세 영역 펼침
