@@ -1546,6 +1546,77 @@
     .home-quote-text { font-size: 14px; color: var(--text); font-weight: 500; line-height: 1.5; padding-left: 30px; font-style: italic; }
 
     .home-section-title { font-size: 14px; font-weight: 700; color: var(--text); margin: 26px 0 14px 2px; }
+
+    /* ===== 🌙 홈 무드 캘린더 (Glassmorphism) ===== */
+    .mood-cal {
+      position: relative; margin-bottom: 20px; padding: 20px 18px 18px;
+      border-radius: 24px; overflow: hidden;
+      background: linear-gradient(150deg,
+        color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+        color-mix(in srgb, var(--point) 16%, transparent) 100%);
+      border: 1px solid color-mix(in srgb, #ffffff 40%, transparent);
+      box-shadow: 0 8px 30px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    @supports not (background: color-mix(in srgb, red, blue)) {
+      .mood-cal { background: linear-gradient(150deg, var(--accent-soft), var(--point-soft)); }
+    }
+    .mood-cal::before {
+      content: ''; position: absolute; top: -40px; right: -30px;
+      width: 140px; height: 140px; border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, #fff 55%, transparent) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    html.dark-mode .mood-cal { border-color: rgba(255,255,255,0.08); }
+    .mood-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative; }
+    .mood-cal-title { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .mood-cal-nav { display: flex; align-items: center; gap: 4px; }
+    .mood-cal-nav button {
+      width: 28px; height: 28px; border: none; border-radius: 50%;
+      background: color-mix(in srgb, #fff 35%, transparent); color: var(--text);
+      font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent; transition: transform var(--t-fast) var(--ease);
+    }
+    .mood-cal-nav button:active { transform: scale(0.9); }
+    .mood-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; position: relative; }
+    .mood-dow { text-align: center; font-size: 10px; color: var(--muted); font-weight: 600; padding-bottom: 2px; }
+    .mood-cell {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; border-radius: 50%; position: relative;
+    }
+    .mood-cell.empty { visibility: hidden; }
+    .mood-cell .mood-num { font-size: 10px; color: var(--muted); opacity: .55; }
+    .mood-cell.has .mood-dot {
+      width: 100%; height: 100%; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: color-mix(in srgb, var(--cell-emo, var(--accent)) 32%, transparent);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cell-emo, var(--accent)) 40%, transparent);
+      font-size: 14px;
+    }
+    @supports not (background: color-mix(in srgb, red, blue)) {
+      .mood-cell.has .mood-dot { background: var(--accent-soft); }
+    }
+    .mood-cell.today { box-shadow: 0 0 0 2px color-mix(in srgb, #fff 70%, transparent); border-radius: 50%; }
+    .mood-cal-empty { text-align: center; font-size: 12.5px; color: var(--muted); padding: 14px 0 2px; }
+
+    /* 감정 리포트 만들기 링크 (홈 하단) */
+    .home-report-link {
+      width: 100%; margin: 8px 0 4px; padding: 14px; background: none;
+      border: 1px solid var(--border); border-radius: 999px;
+      font-family: var(--font); font-size: 13.5px; font-weight: 600; color: var(--muted);
+      cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background var(--t-fast) var(--ease);
+    }
+    .home-report-link:active { background: var(--accent-soft); color: var(--accent); }
+
+    /* 리포트 페이지 헤더 (탭이 아닌 진입형) */
+    .report-page-header { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+    .report-back-btn {
+      width: 34px; height: 34px; border: none; background: var(--surface2);
+      border-radius: 50%; font-size: 22px; line-height: 1; color: var(--text); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;
+      transition: transform var(--t-fast) var(--ease);
+    }
+    .report-back-btn:active { transform: scale(0.92); }
+    .report-page-title { font-size: 18px; font-weight: 800; color: var(--text); }
     .home-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 24px 0; background: var(--surface); border-radius: 18px; }
     /* V1.7 — 홈 최근 기록 컴팩트 리스트 */
     .home-recent-list {
@@ -2120,7 +2191,6 @@
   <button class="tab-btn active" id="tab-home"     onclick="switchTab('home')"><span class="tab-ico">🏠</span><span class="tab-txt">홈</span></button>
   <button class="tab-btn"        id="tab-record"   onclick="switchTab('record')"><span class="tab-ico">✏️</span><span class="tab-txt">기록</span></button>
   <button class="tab-btn"        id="tab-list"     onclick="switchTab('list')"><span class="tab-ico">📚</span><span class="tab-txt">기록목록</span></button>
-  <button class="tab-btn"        id="tab-summary"  onclick="switchTab('summary')"><span class="tab-ico">🌙</span><span class="tab-txt">돌아보기</span></button>
   <button class="tab-btn"        id="tab-settings" onclick="switchTab('settings')"><span class="tab-ico">⚙️</span><span class="tab-txt">설정</span></button>
 </nav>
 
@@ -2141,22 +2211,28 @@
   <!-- 위험도 경고 배너 (필요 시 JS가 표시) -->
   <div id="home-risk-banner"></div>
 
-  <!-- 인사 카드 -->
+  <!-- ① 인사 카드 -->
   <div class="home-invite-card">
     <div class="home-invite-title">오늘 하루는 어땠나요?</div>
     <div class="home-invite-text">완벽하게 기록하지 않아도 괜찮아요.</div>
     <button class="home-cta" onclick="goToRecordTab()">기록하기</button>
   </div>
 
-  <!-- 오늘의 기록 요약 -->
+  <!-- ② 감정 흐름 캘린더 (Mood Calendar) -->
+  <div id="home-mood-calendar"><!-- JS로 생성 --></div>
+
+  <!-- ③ 오늘의 기록 요약 -->
   <div id="home-today-status"><!-- JS로 생성 --></div>
 
-  <!-- 최근 기록 3개 -->
+  <!-- ④ 최근 기록 3개 -->
   <div class="home-section-title">최근 기록</div>
   <div id="home-recent"><!-- JS로 생성 --></div>
 
-  <!-- 오늘의 문장 -->
+  <!-- ⑤ 오늘의 문장 -->
   <div class="home-quote-card" id="home-quote"><!-- JS로 생성 --></div>
+
+  <!-- 감정 리포트 만들기 (분석은 평소 숨김, 필요할 때만) -->
+  <button class="home-report-link" onclick="switchTab('summary')">🌙 감정 리포트 만들기</button>
 
 </div>
 
@@ -2442,6 +2518,12 @@
      📊 요약 페이지 — 월간 달력
      ===================================================== -->
 <div class="page" id="page-summary">
+
+  <!-- 감정 리포트 헤더 (탭이 아닌 진입형 화면) -->
+  <div class="report-page-header">
+    <button class="report-back-btn" onclick="switchTab('home')" aria-label="홈으로">‹</button>
+    <span class="report-page-title">감정 리포트</span>
+  </div>
 
   <!-- 🌙 이번 달의 나 (V1.3) — 조용한 첫 화면 -->
   <div id="reflect-hero"><!-- JS로 생성 --></div>
@@ -2855,6 +2937,7 @@
         style="display:none;" onchange="importData(event)">
       <button class="perm-btn" style="margin-top:8px;" onclick="exportCSV()">📄 CSV로 내보내기 (엑셀용)</button>
       <button class="perm-btn" id="pdf-report-btn" style="margin-top:8px;" onclick="exportPDFReport()">📑 PDF 리포트 만들기</button>
+      <button class="perm-btn" style="margin-top:8px;" onclick="switchTab('summary')">🌙 감정 리포트 보기</button>
       <div class="settings-desc" id="pdf-status" style="margin-top:8px;"></div>
     </div></div>
   </div>
@@ -4658,9 +4741,88 @@ let selectedDateYMD = getLocalYMD(new Date());
 function loadHome() {
   applyBranding();
   renderHomeRiskBanner();
+  renderMoodCalendar();
   renderHomeTodayStatus();
   renderHomeRecent();
   renderHomeQuote();
+}
+
+/* =====================================================
+   🌙 홈 무드 캘린더 (Glassmorphism Mood Calendar)
+   감정의 흐름을 분위기로 보여주는 오브제 — 숫자보다 색감 우선
+   ===================================================== */
+let moodCalYear  = new Date().getFullYear();
+let moodCalMonth = new Date().getMonth();
+function shiftMoodCal(delta) {
+  moodCalMonth += delta;
+  if (moodCalMonth < 0)  { moodCalMonth = 11; moodCalYear--; }
+  if (moodCalMonth > 11) { moodCalMonth = 0;  moodCalYear++; }
+  const now = new Date();
+  // 미래 달로는 이동 금지
+  if (moodCalYear > now.getFullYear() ||
+     (moodCalYear === now.getFullYear() && moodCalMonth > now.getMonth())) {
+    moodCalMonth -= delta;
+    if (moodCalMonth < 0) { moodCalMonth = 11; moodCalYear--; }
+    if (moodCalMonth > 11){ moodCalMonth = 0;  moodCalYear++; }
+    return;
+  }
+  renderMoodCalendar();
+}
+function renderMoodCalendar() {
+  const wrap = document.getElementById('home-mood-calendar');
+  if (!wrap) return;
+  const records = getRecords();
+  const todayYMD = getLocalYMD(new Date());
+
+  // 날짜별 대표 감정 집계 (이 달)
+  const dayMap = {};
+  records.forEach(r => {
+    if (!r.createdAt) return;
+    const d = new Date(r.createdAt);
+    if (d.getFullYear() !== moodCalYear || d.getMonth() !== moodCalMonth) return;
+    const ymd = getLocalYMD(d);
+    if (!dayMap[ymd]) dayMap[ymd] = { topEmo: null, topInt: -1 };
+    const intn = r.intensity ?? 0;
+    if (intn > dayMap[ymd].topInt && (r.emotions || []).length) {
+      dayMap[ymd].topInt = intn; dayMap[ymd].topEmo = r.emotions[0];
+    }
+  });
+
+  const firstDay = new Date(moodCalYear, moodCalMonth, 1).getDay();
+  const lastDate = new Date(moodCalYear, moodCalMonth + 1, 0).getDate();
+  const dows = ['일','월','화','수','목','금','토'];
+
+  let cells = dows.map(d => `<div class="mood-dow">${d}</div>`).join('');
+  for (let i = 0; i < firstDay; i++) cells += `<div class="mood-cell empty"></div>`;
+  for (let date = 1; date <= lastDate; date++) {
+    const ymd = `${moodCalYear}-${String(moodCalMonth+1).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+    const info = dayMap[ymd];
+    const isToday = ymd === todayYMD;
+    let cls = 'mood-cell';
+    if (info && info.topEmo) cls += ' has';
+    if (isToday) cls += ' today';
+    if (info && info.topEmo) {
+      cls += '';
+      cells += `<div class="${cls}" style="--cell-emo:${emotionHex(info.topEmo)}">
+        <span class="mood-dot">${emotionEmoji(info.topEmo)}</span>
+      </div>`;
+    } else {
+      cells += `<div class="${cls}"><span class="mood-num">${date}</span></div>`;
+    }
+  }
+
+  const hasAny = Object.keys(dayMap).length > 0;
+  wrap.innerHTML = `<div class="mood-cal">
+    <div class="mood-cal-head">
+      <span class="mood-cal-title">${moodCalYear}년 ${moodCalMonth + 1}월</span>
+      <div class="mood-cal-nav">
+        <button onclick="shiftMoodCal(-1)" aria-label="이전 달">‹</button>
+        <button onclick="shiftMoodCal(1)" aria-label="다음 달">›</button>
+      </div>
+    </div>
+    <div class="mood-cal-grid">${cells}</div>
+    ${hasAny ? '' : '<div class="mood-cal-empty">이 달의 감정이 아직 비어 있어요 🌙</div>'}
+  </div>`;
 }
 
 function applyBranding() {
