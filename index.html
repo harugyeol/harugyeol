@@ -151,7 +151,7 @@
       background: none; border: none;
       color: var(--muted); font-family: var(--font);
       font-size: 11px; font-weight: 600; cursor: pointer;
-      transition: color .2s, border-bottom .2s;
+      transition: color var(--t-base) var(--ease), border-bottom var(--t-base) var(--ease);
       border-bottom: 2px solid transparent;
       line-height: 1.3;
     }
@@ -161,7 +161,8 @@
        페이지 컨테이너
        =====================================================*/
     .page { display: none; padding: 66px 16px 100px; max-width: 540px; margin: 0 auto; }
-    .page.active { display: block; }
+    .page.active { display: block; animation: pageFadeIn var(--t-base) var(--ease) both; }
+    @keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     /* =====================================================
        기록하기 탭 안내 문구
@@ -374,7 +375,7 @@
 
     /* 기록 카드 */
     .record-card {
-      background: var(--surface); border-radius: 16px; margin-bottom: 16px;
+      background: var(--surface); border-radius: var(--r-card); margin-bottom: 16px;
       border: 1px solid var(--card-border, rgba(0,0,0,0.06));
       overflow: hidden; display: flex;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03);
@@ -390,19 +391,25 @@
     .record-bar.orange { background: var(--risk-orange); }
     .record-bar.red    { background: var(--risk-red); }
     .record-body { flex: 1; padding: 16px; min-width: 0; }
-    .record-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-    .record-date { font-size: 12px; color: var(--muted); }
-    .risk-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; letter-spacing: .04em; white-space: nowrap; }
+    .record-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .record-date { font-size: var(--fs-meta); color: var(--muted); font-weight: 500; }
+    /* V1.8 — 위험도 강조 낮춤: 작은 점 형태 (왼쪽 컬러바가 주 신호) */
+    .risk-badge {
+      font-size: 10.5px; font-weight: 600; padding: 2px 9px; border-radius: 999px;
+      letter-spacing: .02em; white-space: nowrap; opacity: .9;
+    }
     .risk-badge.green  { background: #DCFCE7; color: var(--risk-green); }
     .risk-badge.yellow { background: #FEF9C3; color: var(--risk-yellow); }
     .risk-badge.orange { background: #FFEDD5; color: var(--risk-orange); }
     .risk-badge.red    { background: #FEE2E2; color: var(--risk-red); }
+    /* 안전(green)일 땐 배지를 숨겨 시각 잡음 최소화 (왼쪽 바로 충분) */
+    .risk-badge.green { display: none; }
     .record-emotions { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
     .emotion-tag {
       font-size: 12px; background: var(--surface2); border-radius: 999px;
       padding: 3px 10px; color: var(--text);
     }
-    .intensity-tag { font-size: 12px; color: var(--muted); margin-left: 4px; }
+    .intensity-tag { font-size: var(--fs-meta); color: var(--muted); margin-left: 4px; }
     .record-causes { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
 
     /* 수면·약 메타 행 */
@@ -425,12 +432,12 @@
     }
     /* V1.7 — 미니멀 카드: 대표 감정 요약 + 메모 있음 표시 */
     .record-summary-row { display: flex; align-items: center; gap: 8px; }
-    .emo-summary { font-size: 14.5px; font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 5px; }
-    .emo-summary-emoji { font-size: 17px; }
+    .emo-summary { font-size: 15px; font-weight: 700; color: var(--text); display: inline-flex; align-items: center; gap: 6px; letter-spacing: -0.01em; }
+    .emo-summary-emoji { font-size: 18px; }
     .emo-summary-more { font-size: 12.5px; font-weight: 500; color: var(--muted); }
     .emo-summary-empty { font-size: 13px; color: var(--muted); }
     .record-summary-row .intensity-tag { margin-left: auto; }
-    .record-memo-flag { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .record-memo-flag { font-size: var(--fs-meta); color: var(--muted); margin-top: 6px; }
     .record-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
     .action-btn {
       background: none; border: 1px solid var(--border); border-radius: 999px;
@@ -583,7 +590,7 @@
     /* =====================================================
        설정 페이지
        =====================================================*/
-    .settings-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .settings-title { font-size: 20px; font-weight: 800; margin-bottom: 16px; color: var(--text); letter-spacing: -0.01em; }
     .settings-card {
       background: var(--surface); border-radius: var(--radius);
       padding: 18px 16px; margin-bottom: 12px; border: 1px solid var(--border);
@@ -606,8 +613,8 @@
     .about-intro + .notice-list { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
     .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .settings-row:last-child { margin-bottom: 0; }
-    .settings-label { font-size: 15px; font-weight: 600; }
-    .settings-desc  { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .settings-label { font-size: var(--fs-body); font-weight: 600; color: var(--text); }
+    .settings-desc  { font-size: var(--fs-desc); color: var(--muted); margin-top: 3px; line-height: 1.5; }
 
     /* 토글 스위치 */
     .toggle-wrap { position: relative; width: 50px; height: 28px; flex-shrink: 0; }
@@ -655,8 +662,8 @@
       position: fixed; bottom: 90px; left: 50%;
       transform: translateX(-50%) translateY(20px);
       background: #1E1B2E; color: #F0F2F8; border-radius: var(--radius);
-      padding: 10px 20px; font-size: 14px; opacity: 0;
-      transition: opacity .25s, transform .25s; pointer-events: none;
+      padding: 10px 20px; font-size: var(--fs-body); opacity: 0;
+      transition: opacity var(--t-slow) var(--ease), transform var(--t-slow) var(--ease); pointer-events: none;
       white-space: nowrap; z-index: 200;
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -1195,12 +1202,12 @@
     .risk-signal-item:last-child { padding-bottom: 2px; }
     .risk-signal-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
 
-    /* ===== 카드 디자인 통일 (radius 22px, 그림자 최소) ===== */
+    /* ===== 카드 디자인 통일 (radius 토큰, 그림자 최소) ===== */
     .section-card, .settings-card {
-      border-radius: 22px !important;
+      border-radius: var(--r-card) !important;
     }
     .acc-item {
-      border-radius: 22px !important;
+      border-radius: var(--r-card) !important;
     }
     /* 통일된 부드러운 그림자 (라이트) */
     .section-card, .acc-item {
@@ -1304,20 +1311,26 @@
       font-size: 14px; color: var(--text); font-style: italic; line-height: 1.5; text-align: center;
     }
 
-    /* ===== 애니메이션 통일 (0.25~0.35s) ===== */
-    .acc-body { transition: max-height .3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .acc-arrow { transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .toast { transition: opacity .3s ease, transform .3s ease; }
+    /* ===== 애니메이션 통일 (V1.8 — iOS 기본 앱 느낌) ===== */
+    .acc-body { transition: max-height var(--t-slow) var(--ease); }
+    .acc-arrow { transition: transform var(--t-slow) var(--ease); }
+    .toast { transition: opacity var(--t-slow) var(--ease), transform var(--t-slow) var(--ease); }
     .chip, .cause-check, .quick-chip, .perm-btn, .save-btn, .radio-btn,
     .sleep-num-btn, .trend-range-btn, .chart-range-btn {
-      transition: background .25s ease, border-color .25s ease, color .25s ease, transform .12s ease;
+      transition: background var(--t-base) var(--ease), border-color var(--t-base) var(--ease),
+                  color var(--t-base) var(--ease), transform var(--t-fast) var(--ease);
     }
     .chip:active, .cause-check:active, .quick-chip:active,
-    .perm-btn:active, .radio-btn:active { transform: scale(0.97); }
+    .perm-btn:active, .radio-btn:active,
+    .sleep-num-btn:active, .trend-range-btn:active, .chart-range-btn:active,
+    .filter-chip:active, .seg-btn:active, .lock-mode-btn:active,
+    .home-cta-sub:active, .card-menu-btn:active, .med-add-btn:active {
+      transform: scale(var(--press));
+    }
     /* 카드 등장 (요약/기록 카드 부드럽게) */
     @keyframes cardFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .record-card, .wreport-card, #summary-hero .hero-grid {
-      animation: cardFadeIn .3s ease both;
+      animation: cardFadeIn var(--t-slow) var(--ease) both;
     }
 
     /* 감정 칩: 좌측 색 점 + 선택 시 해당 감정 색 */
@@ -1383,7 +1396,7 @@
       padding: 8px 0 6px; border-bottom: none; border-top: 2px solid transparent;
     }
     .tab-btn.active { border-bottom: none; border-top: 2px solid transparent; }
-    .tab-ico { font-size: 20px; line-height: 1; filter: grayscale(0.4); opacity: .65; transition: all .22s ease; transform: translateY(0); }
+    .tab-ico { font-size: 20px; line-height: 1; filter: grayscale(0.4); opacity: .65; transition: all var(--t-base) var(--ease); transform: translateY(0); }
     .tab-btn.active .tab-ico { filter: grayscale(0); opacity: 1; transform: translateY(-1px) scale(1.08); }
     .tab-txt { font-size: 10px; font-weight: 600; }
     /* 탭바가 하단으로 갔으니 페이지 상단 패딩 줄이고 하단 늘림 */
@@ -1491,7 +1504,7 @@
     .home-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 24px 0; background: var(--surface); border-radius: 18px; }
     /* V1.7 — 홈 최근 기록 컴팩트 리스트 */
     .home-recent-list {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden;
     }
     .home-recent-item {
       display: flex; align-items: center; gap: 10px; width: 100%;
@@ -1621,10 +1634,10 @@
       width: 60px; height: 72px; border: 1.5px solid var(--border); background: var(--surface);
       border-radius: 16px; cursor: pointer; -webkit-tap-highlight-color: transparent;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-      transition: transform .1s, border-color .15s, background .15s;
+      transition: transform .2s cubic-bezier(0.34,1.56,0.64,1), border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
     }
     .simple-emo-btn:active { transform: scale(.94); }
-    .simple-emo-btn.selected { border-color: var(--accent); background: var(--accent-soft); }
+    .simple-emo-btn.selected { border-color: var(--accent); background: var(--accent-soft); transform: scale(1.04); }
     .simple-emo-emoji { font-size: 26px; line-height: 1; }
     .simple-emo-name { font-size: 11px; font-weight: 600; color: var(--muted); }
     .simple-emo-btn.selected .simple-emo-name { color: var(--accent); }
@@ -1848,7 +1861,7 @@
     /* 조용한 작은 통계 카드 (V1.4) */
     .ministat-card {
       display: flex; background: var(--surface); border: 1px solid var(--border);
-      border-radius: 16px; padding: 16px 12px; margin-top: 12px;
+      border-radius: var(--r-card); padding: 16px 12px; margin-top: 12px;
     }
     .ministat-item { flex: 1; text-align: center; }
     .ministat-item + .ministat-item { border-left: 1px solid var(--border); }
@@ -1908,7 +1921,21 @@
        V11: 진료 리포트 / 체크리스트 / 완성도 / 오늘의 질문 / 디자인 시스템
        =====================================================*/
     /* 디자인 시스템 토큰 통일 */
-    :root { --r-card: 18px; --sp: 16px; --btn-h: 48px; }
+    :root { --r-card: 18px; --sp: 16px; --btn-h: 48px;
+      /* V1.8 — 통일된 움직임 토큰 (iOS 기본 앱 느낌) */
+      --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+      --t-fast: 0.18s;
+      --t-base: 0.24s;
+      --t-slow: 0.30s;
+      --press: 0.97;
+      /* V1.8 — 타이포 계층 */
+      --fs-title: 22px;     /* 페이지 제목 */
+      --fs-section: 15px;   /* 섹션 제목 */
+      --fs-body: 14px;      /* 본문 */
+      --fs-desc: 13px;      /* 설명 문구 */
+      --fs-meta: 12px;      /* 시간·보조 텍스트 */
+      --lh-base: 1.6;
+    }
 
     /* 기록 완성도 진행률 */
     .record-progress-card {
@@ -2095,9 +2122,6 @@
       <button class="home-cta-sub" onclick="switchTab('summary')">돌아보기</button>
     </div>
   </div>
-
-  <!-- 오늘의 기록 상태 -->
-  <div id="home-today-status"><!-- JS로 생성 --></div>
 
   <!-- 오늘의 한마디 -->
   <div class="home-quote-card" id="home-quote"><!-- JS로 생성 --></div>
@@ -2406,7 +2430,7 @@
     <span id="summary-detail-text">더 자세히 보기</span>
     <span class="detail-more-arrow" id="summary-detail-arrow">›</span>
   </button>
-  <div class="detail-more-hint" id="summary-detail-hint">진료 리포트 · 주간 리포트 · 자동 회고 · 패턴 분석 등<br>12개의 상세 분석 보기</div>
+  <div class="detail-more-hint" id="summary-detail-hint">🌿 기록이 쌓이면 더 많은 이야기를 볼 수 있어요.</div>
 
   <!-- ▼ 상세 분석 (기본 접힘) -->
   <div class="summary-detail" id="summary-detail">
@@ -2675,9 +2699,7 @@
      ===================================================== -->
 <div class="page" id="page-settings">
   <div class="settings-title">설정</div>
-  <div class="settings-desc" style="margin:-6px 0 16px;">필요한 항목만 눌러서 펼쳐보세요.</div>
 
-  <div class="acc-group-title first">🌙 화면</div>
   <!-- 화면 모드 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2706,7 +2728,6 @@
     </div></div>
   </div>
 
-  <div class="acc-group-title">🔔 알림</div>
   <!-- 알림 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2748,7 +2769,6 @@
     </div></div>
   </div>
 
-  <div class="acc-group-title">🔒 개인정보</div>
   <!-- 보안 (PIN) -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2784,7 +2804,6 @@
     </div></div>
   </div>
 
-  <div class="acc-group-title">💾 데이터 관리</div>
   <!-- 백업 및 복원 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2804,7 +2823,6 @@
     </div></div>
   </div>
 
-  <div class="acc-group-title">💊 건강 관리</div>
   <!-- 약 복용 관리 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2845,7 +2863,6 @@
     </div></div>
   </div>
 
-  <div class="acc-group-title">🎯 개인화</div>
   <!-- 기타 설정 (감정 목표) -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2887,7 +2904,6 @@
     </div></div>
   </div>
 
-  <div class="acc-group-title">📖 도움말</div>
   <!-- 👋 처음 사용하는 분께 -->
   <div class="acc-item">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -4554,7 +4570,6 @@ let selectedDateYMD = getLocalYMD(new Date());
 function loadHome() {
   applyBranding();
   renderHomeRiskBanner();
-  renderHomeTodayStatus();
   renderHomeQuote();
   renderHomeRecent();
 }
@@ -4940,7 +4955,7 @@ function renderReflectHero() {
   if (recs.length === 0) {
     wrap.innerHTML = `<div class="reflect-hero">
       <div class="reflect-hero-title">🌙 이번 달의 나</div>
-      <div class="reflect-flow-empty">아직 기록이 없어요.<br>오늘의 마음을 한 줄 남겨보세요.</div>
+      <div class="reflect-flow-empty">오늘의 마음을 한 줄 남겨보세요.</div>
     </div>`;
     return;
   }
@@ -5054,7 +5069,7 @@ function toggleSummaryDetail() {
   btn?.classList.toggle('open', willOpen);
   if (txt) txt.textContent = willOpen ? '간단히 보기' : '더 자세히 보기';
   const hint = document.getElementById('summary-detail-hint');
-  if (hint) hint.textContent = willOpen ? '상세 분석을 보고 있어요' : '진료 리포트 · 주간 리포트 · 자동 회고 · 패턴 분석 등 12개의 상세 분석 보기';
+  if (hint) hint.textContent = willOpen ? '천천히 쌓인 마음들을 들여다보고 있어요.' : '🌿 기록이 쌓이면 더 많은 이야기를 볼 수 있어요.';
   // 펼친 직후, 접힘 상태에서 0px로 그려진 차트들 재계산
   if (willOpen) {
     setTimeout(() => {
