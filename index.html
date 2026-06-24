@@ -1749,6 +1749,45 @@
     }
     .acc-group-title.first { margin-top: 8px; }
 
+    /* 🌙 이번 달의 나 — 조용한 첫 화면 (V1.3) */
+    .reflect-hero {
+      background: linear-gradient(180deg, var(--accent-soft) 0%, var(--surface) 70%);
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 24px 20px 22px; margin-bottom: 8px; text-align: center;
+    }
+    .reflect-hero-title { font-size: 15px; font-weight: 800; color: var(--accent); letter-spacing: 0.02em; margin-bottom: 20px; }
+    .reflect-block { margin-bottom: 20px; }
+    .reflect-block:last-child { margin-bottom: 0; }
+    .reflect-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .reflect-top-emo { font-size: 26px; font-weight: 800; color: var(--text); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .reflect-top-emo .emoji { font-size: 30px; }
+    .reflect-flow { font-size: 26px; letter-spacing: 4px; line-height: 1.3; }
+    .reflect-flow-empty { font-size: 13px; color: var(--muted); letter-spacing: normal; }
+    .reflect-quote {
+      font-size: 13.5px; color: var(--text); line-height: 1.7;
+      background: var(--surface2); border-radius: 14px; padding: 14px 16px; margin-top: 4px;
+    }
+    .reflect-care {
+      display: flex; gap: 10px; align-items: flex-start; text-align: left;
+      background: var(--accent-soft); border-radius: 14px; padding: 14px 16px; margin-top: 14px;
+    }
+    .reflect-care-icon { font-size: 18px; line-height: 1.4; }
+    .reflect-care-text { font-size: 13px; color: var(--text); line-height: 1.65; }
+
+    /* 더 자세히 보기 토글 (V1.3) */
+    .detail-more-btn {
+      width: 100%; height: 46px; margin: 18px 0 4px; background: none;
+      border: 1px solid var(--border); border-radius: 999px;
+      font-family: var(--font); font-size: 13.5px; font-weight: 600; color: var(--muted);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center; gap: 4px; transition: background .15s;
+    }
+    .detail-more-btn:active { background: var(--accent-soft); }
+    .detail-more-arrow { font-size: 16px; transition: transform .25s; }
+    .detail-more-btn.open .detail-more-arrow { transform: rotate(90deg); }
+    .summary-detail { display: none; margin-top: 6px; }
+    .summary-detail.open { display: block; }
+
     /* 🌙 월간 회고 (V18) */
     .mr-card {
       background: var(--surface); border: 1px solid var(--border);
@@ -1956,7 +1995,7 @@
   <button class="tab-btn active" id="tab-home"     onclick="switchTab('home')"><span class="tab-ico">🏠</span><span class="tab-txt">홈</span></button>
   <button class="tab-btn"        id="tab-record"   onclick="switchTab('record')"><span class="tab-ico">✏️</span><span class="tab-txt">기록</span></button>
   <button class="tab-btn"        id="tab-list"     onclick="switchTab('list')"><span class="tab-ico">📚</span><span class="tab-txt">기록목록</span></button>
-  <button class="tab-btn"        id="tab-summary"  onclick="switchTab('summary')"><span class="tab-ico">📊</span><span class="tab-txt">분석</span></button>
+  <button class="tab-btn"        id="tab-summary"  onclick="switchTab('summary')"><span class="tab-ico">🌙</span><span class="tab-txt">돌아보기</span></button>
   <button class="tab-btn"        id="tab-settings" onclick="switchTab('settings')"><span class="tab-ico">⚙️</span><span class="tab-txt">설정</span></button>
 </nav>
 
@@ -1984,7 +2023,7 @@
     <button class="home-cta" onclick="goToRecordTab()">기록 시작하기</button>
     <div class="home-cta-row">
       <button class="home-cta-sub" onclick="switchTab('list')">최근 기록 보기</button>
-      <button class="home-cta-sub" onclick="switchTab('summary')">분석 보기</button>
+      <button class="home-cta-sub" onclick="switchTab('summary')">돌아보기</button>
     </div>
   </div>
 
@@ -2272,12 +2311,24 @@
      ===================================================== -->
 <div class="page" id="page-summary">
 
-  <!-- 🗓 이번 주 감정 점수 (주간 리포트 카드 · 최상단) -->
-  <div id="weekly-report"><!-- JS로 생성 --></div>
+  <!-- 🌙 이번 달의 나 (V1.3) — 조용한 첫 화면 -->
+  <div id="reflect-hero"><!-- JS로 생성 --></div>
 
-  <!-- 🌙 월간 회고 (V18) -->
+  <!-- 🌙 월간 회고 -->
   <div class="acc-group-title first">월간 회고</div>
   <div id="monthly-review"><!-- JS로 생성 --></div>
+
+  <!-- 더 자세히 보기 토글 (V1.3) -->
+  <button class="detail-more-btn" id="summary-detail-btn" onclick="toggleSummaryDetail()">
+    <span id="summary-detail-text">더 자세히 보기</span>
+    <span class="detail-more-arrow" id="summary-detail-arrow">›</span>
+  </button>
+
+  <!-- ▼ 상세 분석 (기본 접힘) -->
+  <div class="summary-detail" id="summary-detail">
+
+  <!-- 🗓 이번 주 감정 점수 (주간 리포트 카드) -->
+  <div id="weekly-report"><!-- JS로 생성 --></div>
 
   <div class="acc-item" id="clinic-report-acc">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2529,6 +2580,8 @@
       </div>
     </div>
   </div>
+
+  </div><!-- /summary-detail -->
 
 </div>
 
@@ -4680,10 +4733,114 @@ function renderAutoRetro() {
 }
 
 
+/* =====================================================
+   🌙 이번 달의 나 (V1.3) — 조용한 첫 화면
+   가장 많은 감정 · 최근 7일 흐름 · 짧은 회고 · (필요시) 배려 문구
+   ===================================================== */
+function renderReflectHero() {
+  const wrap = document.getElementById('reflect-hero');
+  if (!wrap) return;
+  const recs = getRecords();
+  const now = new Date();
+  const monthStr = getLocalYMD(now).slice(0, 7);
+  const monthRecs = recs.filter(r => r.createdAt && getLocalYMD(new Date(r.createdAt)).startsWith(monthStr));
+
+  if (recs.length === 0) {
+    wrap.innerHTML = `<div class="reflect-hero">
+      <div class="reflect-hero-title">🌙 이번 달의 나</div>
+      <div class="reflect-flow-empty">아직 기록이 없어요.<br>오늘의 마음을 한 줄 남겨보세요.</div>
+    </div>`;
+    return;
+  }
+
+  // 1) 이번 달 가장 많이 기록한 감정
+  const cnt = {};
+  monthRecs.forEach(r => (r.emotions || []).forEach(e => cnt[e] = (cnt[e] || 0) + 1));
+  const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+  const topEmoHtml = top
+    ? `<div class="reflect-top-emo"><span class="emoji">${emotionEmoji(top[0])}</span><span>${escapeHtml(top[0])}</span></div>`
+    : `<div class="reflect-flow-empty">이번 달 감정 기록이 아직 없어요</div>`;
+
+  // 2) 최근 7일 감정 흐름 (하루 대표 감정 이모지, 오래된→최신)
+  const flow = [];
+  let hardDays = 0;
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate() - i);
+    const ymd = getLocalYMD(d);
+    const dayRecs = recs.filter(r => r.createdAt && getLocalYMD(new Date(r.createdAt)) === ymd);
+    if (dayRecs.length === 0) { flow.push('·'); continue; }
+    // 그날 가장 강도 높은 기록의 대표 감정
+    let best = null, bestInt = -1, maxRisk = 0;
+    dayRecs.forEach(r => {
+      const intn = r.intensity ?? 0;
+      if ((r.emotions || []).length && intn > bestInt) { bestInt = intn; best = r.emotions[0]; }
+      maxRisk = Math.max(maxRisk, RISK_ORDER[r.riskLevel] ?? 0);
+    });
+    if (maxRisk >= 2) hardDays++;
+    flow.push(best ? emotionEmoji(best) : '·');
+  }
+  const flowHtml = flow.some(f => f !== '·')
+    ? `<div class="reflect-flow">${flow.join('')}</div>`
+    : `<div class="reflect-flow-empty">최근 7일 기록이 아직 없어요</div>`;
+
+  // 3) 짧은 회고 문구 (감정 톤 기반, 차분하게)
+  const quote = buildReflectQuote(top ? top[0] : null, hardDays, monthRecs.length);
+
+  // 4) 배려 문구 (최근 7일 힘든 날이 있었을 때만)
+  const careHtml = hardDays > 0
+    ? `<div class="reflect-care">
+        <span class="reflect-care-icon">🌙</span>
+        <span class="reflect-care-text">최근 힘든 날이 있었어요.<br>천천히 자신을 돌봐주세요.</span>
+      </div>`
+    : '';
+
+  wrap.innerHTML = `<div class="reflect-hero">
+    <div class="reflect-hero-title">🌙 이번 달의 나</div>
+    <div class="reflect-block">
+      <div class="reflect-label">가장 많았던 감정</div>
+      ${topEmoHtml}
+    </div>
+    <div class="reflect-block">
+      <div class="reflect-label">최근 7일</div>
+      ${flowHtml}
+    </div>
+    <div class="reflect-quote">${quote}</div>
+    ${careHtml}
+  </div>`;
+}
+
+/* 짧은 회고 문구 — 데이터 톤에 맞춰 부드럽게 */
+function buildReflectQuote(topEmo, hardDays, monthCount) {
+  if (monthCount === 0) return '이번 달도 천천히 시작해봐요.';
+  if (hardDays >= 3) return '쉽지 않은 날들이 있었지만, 그래도 기록을 남긴 당신이 대단해요.';
+  if (hardDays > 0)  return '조금 흔들린 날도 있었지만, 잘 지나오고 있어요.';
+  const calm = ['평온', '안정', '기쁨', '설렘', '희망', '감사'];
+  if (topEmo && calm.includes(topEmo)) return '이번 주는 비교적 안정적인 한 주였어요.';
+  return '오늘도 나를 기록한 당신에게, 수고했다고 말해주고 싶어요.';
+}
+
+/* 더 자세히 보기 펼치기/접기 (V1.3) */
+function toggleSummaryDetail() {
+  const detail = document.getElementById('summary-detail');
+  const btn    = document.getElementById('summary-detail-btn');
+  const txt    = document.getElementById('summary-detail-text');
+  if (!detail) return;
+  const willOpen = !detail.classList.contains('open');
+  detail.classList.toggle('open', willOpen);
+  btn?.classList.toggle('open', willOpen);
+  if (txt) txt.textContent = willOpen ? '간단히 보기' : '더 자세히 보기';
+  // 펼친 직후, 접힘 상태에서 0px로 그려진 차트들 재계산
+  if (willOpen) {
+    setTimeout(() => {
+      try { if (typeof renderEmotionChart === 'function') renderEmotionChart(); } catch (e) {}
+      try { if (typeof emotionChartInstance !== 'undefined' && emotionChartInstance) emotionChartInstance.resize(); } catch (e) {}
+    }, 120);
+  }
+}
+
 function loadSummary() {
   // 요약 탭 재진입 시 보고 있던 월·선택 날짜를 유지한다.
-  renderClinicReport();     // 🩺 진료 리포트 (V11)
-  renderClinicChecklist();  // 📋 진료 체크리스트 (V11)
+  renderClinicReport();     // 🩺 진료 리포트 (V11)  renderClinicChecklist();  // 📋 진료 체크리스트 (V11)
   renderAutoRetro();        // 🪞 자동 회고 (V14)
   renderStreak();          // 🔥 연속 기록 (10번)
   renderCrisisCounter();   // 🚦 위기 카운터 (5번)
@@ -4703,6 +4860,7 @@ function loadSummary() {
   renderRetroList();       // 월별 한 줄 회고 (6번)
   renderSummaryHero();     // ⭐ 핵심 요약 카드 (UI 표시용)
   renderWeeklyReport();    // 🗓 이번 주 감정 점수 카드
+  renderReflectHero();     // 🌙 이번 달의 나 (V1.3)
   renderMonthlyReview();   // 🌙 월간 회고 (V18)
   // 캘린더는 별도 '캘린더' 탭으로 분리됨 (loadCalendar)
 }
