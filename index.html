@@ -337,6 +337,22 @@
     .search-input:focus { border-color: var(--accent); }
     .search-input::placeholder { color: var(--muted); }
 
+    /* 필터 열기/닫기 토글 (V1.4) */
+    .filter-toggle-btn {
+      width: 100%; height: 42px; margin-bottom: 12px; background: none;
+      border: 1px solid var(--border); border-radius: 999px;
+      font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--muted);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center; gap: 6px; transition: background .15s, color .15s, border-color .15s;
+    }
+    .filter-toggle-btn:active { background: var(--accent-soft); }
+    .filter-toggle-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .filter-toggle-ico { font-size: 13px; }
+    .filter-toggle-arrow { font-size: 15px; transition: transform .25s; }
+    .filter-toggle-btn.open .filter-toggle-arrow { transform: rotate(90deg); }
+    .list-filters { display: none; }
+    .list-filters.open { display: block; }
+
     /* 필터 칩 (위험도 / 기간 / 감정) */
     .filter-section-label {
       font-size: 11px; font-weight: 700; color: var(--muted);
@@ -401,6 +417,11 @@
     .record-memo {
       font-size: 13px; color: var(--text); white-space: pre-wrap; word-break: break-all;
       background: var(--surface2); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px;
+    }
+    /* 기본 카드 메모 첫 줄 미리보기 (V1.4) */
+    .record-memo-preview {
+      font-size: 12.5px; color: var(--muted); margin-top: 6px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .record-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
     .action-btn {
@@ -1719,20 +1740,20 @@
        목록 카드 '자세히 보기' 아코디언
        기본은 날짜·감정·위험도·강도만, 누르면 원인·충동·약·메모 펼침
        =====================================================*/
-    .record-detail {
+    .record-card-detail {
       max-height: 0; overflow: hidden; opacity: 0;
       transition: max-height .35s cubic-bezier(0.4,0,0.2,1), opacity .3s ease;
     }
-    .record-detail.open { max-height: 600px; opacity: 1; }
-    .record-detail-inner { padding-top: 4px; }
-    .record-detail-toggle {
+    .record-card-detail.open { max-height: 600px; opacity: 1; }
+    .record-card-detail-inner { padding-top: 4px; }
+    .record-card-detail-toggle {
       display: flex; align-items: center; gap: 4px; margin-top: 10px;
       background: none; border: none; padding: 4px 0; cursor: pointer;
       font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--accent);
       -webkit-tap-highlight-color: transparent;
     }
-    .record-detail-toggle .detail-arrow { font-size: 15px; transition: transform .3s ease; }
-    .record-detail-toggle.open .detail-arrow { transform: rotate(90deg); }
+    .record-card-detail-toggle .detail-arrow { font-size: 15px; transition: transform .3s ease; }
+    .record-card-detail-toggle.open .detail-arrow { transform: rotate(90deg); }
 
     /* =====================================================
        V10: 판매용 UI 톤 통일 (간격·그림자·타이포)
@@ -1787,6 +1808,22 @@
     .detail-more-btn.open .detail-more-arrow { transform: rotate(90deg); }
     .summary-detail { display: none; margin-top: 6px; }
     .summary-detail.open { display: block; }
+    /* 더 자세히 보기 안내 문구 (V1.4) */
+    .detail-more-hint {
+      font-size: 11.5px; color: var(--muted); text-align: center;
+      line-height: 1.6; margin: 6px 0 2px;
+    }
+    /* 조용한 작은 통계 카드 (V1.4) */
+    .ministat-card {
+      display: flex; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px 12px; margin-top: 12px;
+    }
+    .ministat-item { flex: 1; text-align: center; }
+    .ministat-item + .ministat-item { border-left: 1px solid var(--border); }
+    .ministat-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+    .ministat-value { font-size: 16px; font-weight: 800; color: var(--text); }
+    .ministat-value .emoji { font-size: 17px; }
+    .ministat-value .unit { font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 1px; }
 
     /* 🌙 월간 회고 (V18) */
     .mr-card {
@@ -2093,6 +2130,7 @@
       <div class="simple-memo-q">오늘 무슨 일이 있었나요?</div>
       <div class="simple-memo-hint">한 줄만 적어도 괜찮아요. 비워둬도 돼요.</div>
       <textarea class="simple-memo-input" id="quick-memo-input"
+        oninput="updateRecordProgress()"
         placeholder="예: 오늘은 그냥 좀 지쳤다" rows="2"></textarea>
     </div>
 
@@ -2268,8 +2306,8 @@
     <button class="clear-all-btn" onclick="clearAll()">전체 삭제</button>
   </div>
 
-  <!-- 캘린더 보기 (접이식 섹션, 기본 펼침) -->
-  <div class="acc-item open" id="list-calendar-acc">
+  <!-- 캘린더 보기 (접이식 섹션, 기본 접힘) -->
+  <div class="acc-item" id="list-calendar-acc">
     <button class="acc-header" onclick="toggleListCalendar(this)">
       <span>📅 캘린더로 보기</span><span class="acc-arrow">›</span>
     </button>
@@ -2290,17 +2328,27 @@
   <input type="text" class="search-input" id="list-search-input"
     placeholder="🔍 감정·원인·메모·충동·키워드 검색" oninput="onListSearchInput()">
 
-  <div class="filter-section-label">위험도</div>
-  <div class="filter-row" id="filter-risk-row"><!-- JS로 생성 --></div>
+  <!-- 필터 열기/닫기 토글 (V1.4) -->
+  <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="toggleListFilters()">
+    <span class="filter-toggle-ico">⚙️</span>
+    <span id="filter-toggle-text">필터 열기</span>
+    <span class="filter-toggle-arrow" id="filter-toggle-arrow">›</span>
+  </button>
 
-  <div class="filter-section-label">마음 신호</div>
-  <div class="filter-row" id="filter-special-row"><!-- JS로 생성 --></div>
+  <!-- ▼ 필터 영역 (기본 접힘) -->
+  <div class="list-filters" id="list-filters">
+    <div class="filter-section-label">위험도</div>
+    <div class="filter-row" id="filter-risk-row"><!-- JS로 생성 --></div>
 
-  <div class="filter-section-label">기간</div>
-  <div class="filter-row" id="filter-period-row"><!-- JS로 생성 --></div>
+    <div class="filter-section-label">마음 신호</div>
+    <div class="filter-row" id="filter-special-row"><!-- JS로 생성 --></div>
 
-  <div class="filter-section-label">감정</div>
-  <div class="filter-row" id="filter-emotion-row"><!-- JS로 생성 --></div>
+    <div class="filter-section-label">기간</div>
+    <div class="filter-row" id="filter-period-row"><!-- JS로 생성 --></div>
+
+    <div class="filter-section-label">감정</div>
+    <div class="filter-row" id="filter-emotion-row"><!-- JS로 생성 --></div>
+  </div>
 
   <div id="record-list"><!-- JS로 생성 --></div>
 </div>
@@ -2318,17 +2366,18 @@
   <div class="acc-group-title first">월간 회고</div>
   <div id="monthly-review"><!-- JS로 생성 --></div>
 
+  <!-- 조용한 작은 통계 (V1.4) -->
+  <div id="reflect-ministats"><!-- JS로 생성 --></div>
+
   <!-- 더 자세히 보기 토글 (V1.3) -->
   <button class="detail-more-btn" id="summary-detail-btn" onclick="toggleSummaryDetail()">
     <span id="summary-detail-text">더 자세히 보기</span>
     <span class="detail-more-arrow" id="summary-detail-arrow">›</span>
   </button>
+  <div class="detail-more-hint" id="summary-detail-hint">진료 리포트 · 주간 리포트 · 자동 회고 · 패턴 분석 등<br>12개의 상세 분석 보기</div>
 
   <!-- ▼ 상세 분석 (기본 접힘) -->
   <div class="summary-detail" id="summary-detail">
-
-  <!-- 🗓 이번 주 감정 점수 (주간 리포트 카드) -->
-  <div id="weekly-report"><!-- JS로 생성 --></div>
 
   <div class="acc-item" id="clinic-report-acc">
     <button class="acc-header" onclick="toggleAccordion(this)">
@@ -2352,6 +2401,9 @@
       </div>
     </div>
   </div>
+
+  <!-- 🗓 이번 주 감정 점수 (주간 리포트 카드) -->
+  <div id="weekly-report"><!-- JS로 생성 --></div>
 
   <!-- 🪞 자동 회고 (V14) -->
   <div class="acc-item" id="auto-retro-acc">
@@ -2739,7 +2791,7 @@
     </button>
     <div class="acc-body"><div class="acc-body-inner">
       <div class="settings-desc" style="margin-bottom: 12px;">
-        최근 생리 시작일과 평균 주기를 입력하면 다음 예정일·PMS·배란일을 계산하고, 요약 탭에서 PMS 기간 감정을 분석해요.
+        최근 생리 시작일과 평균 주기를 입력하면 다음 예정일·PMS·배란일을 계산하고, 돌아보기 탭에서 PMS 기간 감정을 살펴봐요.
       </div>
       <div class="cycle-input-row">
         <label class="cycle-input-label">최근 생리 시작일</label>
@@ -2762,7 +2814,7 @@
     </button>
     <div class="acc-body"><div class="acc-body-inner">
       <div class="settings-desc" style="margin-bottom: 12px;">
-        목표를 정하면 요약 탭에서 달성률을 보여드려요. (최근 7일 기준)
+        목표를 정하면 돌아보기 탭에서 달성률을 보여드려요. (최근 7일 기준)
       </div>
       <label class="goal-row">
         <input type="checkbox" id="goal-record-chk" />
@@ -2789,7 +2841,7 @@
       <ol class="guide-list">
         <li>오늘의 감정을 기록합니다.</li>
         <li>감정 강도, 원인, 수면, 약 복용 여부를 함께 남깁니다.</li>
-        <li>기록 목록과 분석 탭에서 내 패턴을 확인합니다.</li>
+        <li>기록 목록과 돌아보기 탭에서 내 기록을 천천히 돌아봅니다.</li>
         <li>진료 전에는 PDF 리포트나 최근 기록을 참고합니다.</li>
         <li>주기적으로 백업 파일을 내보내 기록을 보관합니다.</li>
       </ol>
@@ -3189,6 +3241,7 @@ function init() {
   renderCauseTabs();
   renderIntervalBtns();
   renderListFilters();
+  refreshFilterToggle();
   loadRecordList();
   initDarkMode();
   renderThemePicker();      // 🎨 색상 테마 선택 UI
@@ -3349,7 +3402,9 @@ function updateStepProgress() {
 
 /* 기록 완성도 진행률 (V11) — 감정·원인·수면·약·메모·충동 입력 여부 */
 function updateRecordProgress() {
-  const memo = (document.getElementById('memo-input')?.value || '').trim();
+  const detailMemo = (document.getElementById('memo-input')?.value || '').trim();
+  const quickMemo  = (document.getElementById('quick-memo-input')?.value || '').trim();
+  const memo = detailMemo || quickMemo;   // 초간편 메모도 완성도에 반영 (V1.5)
   const items = [
     { key: '감정', done: state.emotions.size > 0 },
     { key: '원인', done: state.causes.size > 0 },
@@ -3986,7 +4041,34 @@ function renderListFilters() {
 function setListFilter(key, val) {
   listFilter[key] = val;
   renderListFilters();
+  refreshFilterToggle();
   loadRecordList();
+}
+
+/* 필터 영역 열기/닫기 (V1.4) */
+function toggleListFilters() {
+  const box = document.getElementById('list-filters');
+  const btn = document.getElementById('filter-toggle-btn');
+  if (!box) return;
+  const willOpen = !box.classList.contains('open');
+  box.classList.toggle('open', willOpen);
+  btn?.classList.toggle('open', willOpen);
+  refreshFilterToggle();
+}
+
+/* 필터 적용 여부에 따라 버튼 문구·강조 갱신 */
+function isAnyFilterActive() {
+  return listFilter.risk !== 'all' || listFilter.period !== 'all'
+      || listFilter.emotion !== 'all' || listFilter.special !== 'all';
+}
+function refreshFilterToggle() {
+  const btn = document.getElementById('filter-toggle-btn');
+  const txt = document.getElementById('filter-toggle-text');
+  if (!btn || !txt) return;
+  const open   = document.getElementById('list-filters')?.classList.contains('open');
+  const active = isAnyFilterActive();
+  btn.classList.toggle('active', active);
+  txt.textContent = active ? '필터 적용 중' : (open ? '필터 닫기' : '필터 열기');
 }
 
 // ── 검색어 입력
@@ -4071,8 +4153,8 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
   const sleepHourTag  = r.sleepHour != null ? `🛌 ${r.sleepHour}시간` : '';
   const sleepQualMap  = { none:'', bad:'수면 나쁨', ok:'수면 보통', good:'수면 좋음' };
   const sleepQualTag  = sleepQualMap[r.sleepQuality] || '';
-  const medMap        = { na:'약 해당없음', taken:'약 복용', missed:'약 빼먹음', stopped:'단약 중', dosechange:'용량 변경', sideeffect:'부작용 있음' };
-  const medTag        = medMap[r.medication] || '';
+  const medMap        = { taken:'약 복용', missed:'약 빼먹음', stopped:'단약 중', dosechange:'용량 변경', sideeffect:'부작용 있음' };
+  const medTag        = (r.medication && r.medication !== 'na') ? (medMap[r.medication] || '') : '';
   const cycleTag      = CYCLE_LABEL[r.cyclePhase] ? `🌙 ${CYCLE_LABEL[r.cyclePhase]}` : '';
   const takenMedsTag  = (r.takenMeds || []).length ? `💊 ${r.takenMeds.join(', ')}` : '';
   // V9 충동 태그: 종류 이모지 + 강도
@@ -4087,14 +4169,18 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
 
   const memoHtml = r.memo ? `<div class="record-memo">${escapeHtml(r.memo)}</div>` : '';
   const retroHtml = r.retro ? `<div class="record-memo" style="font-style:italic;">📝 ${escapeHtml(r.retro)}</div>` : '';
+  // 기본 카드용 메모 첫 줄 미리보기 (V1.4)
+  const memoFirstLine = r.memo ? r.memo.split('\n')[0].trim() : '';
+  const memoPreviewHtml = memoFirstLine
+    ? `<div class="record-memo-preview">${escapeHtml(memoFirstLine)}</div>` : '';
   const emergencyBtnHtml = riskClass === 'red'
     ? `<a class="action-btn emergency-card-btn" href="tel:1393">📞 긴급 도움 1393</a>` : '';
 
   // 자세히 보기 안에 들어갈 상세 내용 (원인·충동·약·메모)
   const hasDetail = causesText || metaTags || memoHtml || retroHtml || emergencyBtnHtml;
   const detailHtml = hasDetail ? `
-        <div class="record-detail" id="detail-${r.id}">
-          <div class="record-detail-inner">
+        <div class="record-card-detail" id="detail-${r.id}">
+          <div class="record-card-detail-inner">
             ${causesText ? `<div class="record-causes">${escapeHtml(causesText)}</div>` : ''}
             ${metaTags   ? `<div class="record-meta">${metaTags}</div>` : ''}
             ${memoHtml}
@@ -4102,7 +4188,7 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
             ${emergencyBtnHtml ? `<div class="record-actions">${emergencyBtnHtml}</div>` : ''}
           </div>
         </div>
-        <button class="record-detail-toggle" onclick="toggleRecordDetail('${r.id}', event)" id="detail-btn-${r.id}">
+        <button class="record-card-detail-toggle" onclick="toggleRecordDetail('${r.id}', event)" id="detail-btn-${r.id}">
           <span>자세히 보기</span><span class="detail-arrow">›</span>
         </button>` : '';
 
@@ -4126,6 +4212,7 @@ function renderRecordCard(r) {  const riskClass  = r.riskLevel || 'green';
           </div>
         </div>
         <div class="record-emotions">${emotionTags}${intensityDisplay}</div>
+        ${memoPreviewHtml}
         ${detailHtml}
       </div>
     </div>`;
@@ -4810,13 +4897,45 @@ function renderReflectHero() {
 }
 
 /* 짧은 회고 문구 — 데이터 톤에 맞춰 부드럽게 */
-function buildReflectQuote(topEmo, hardDays, monthCount) {
-  if (monthCount === 0) return '이번 달도 천천히 시작해봐요.';
+function buildReflectQuote(topEmo, hardDays, monthCount) {  if (monthCount === 0) return '이번 달도 천천히 시작해봐요.';
   if (hardDays >= 3) return '쉽지 않은 날들이 있었지만, 그래도 기록을 남긴 당신이 대단해요.';
   if (hardDays > 0)  return '조금 흔들린 날도 있었지만, 잘 지나오고 있어요.';
   const calm = ['평온', '안정', '기쁨', '설렘', '희망', '감사'];
   if (topEmo && calm.includes(topEmo)) return '이번 주는 비교적 안정적인 한 주였어요.';
   return '오늘도 나를 기록한 당신에게, 수고했다고 말해주고 싶어요.';
+}
+
+/* 🌙 조용한 작은 통계 (V1.4) — 이번 달 기록 / 가장 많은 감정 / 연속 기록 */
+function renderMiniStats() {
+  const wrap = document.getElementById('reflect-ministats');
+  if (!wrap) return;
+  const recs = getRecords();
+  if (recs.length === 0) { wrap.innerHTML = ''; return; }
+  const now = new Date();
+  const monthStr = getLocalYMD(now).slice(0, 7);
+  const monthRecs = recs.filter(r => r.createdAt && getLocalYMD(new Date(r.createdAt)).startsWith(monthStr));
+  const cnt = {};
+  monthRecs.forEach(r => (r.emotions || []).forEach(e => cnt[e] = (cnt[e] || 0) + 1));
+  const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+  const topHtml = top
+    ? `<span class="emoji">${emotionEmoji(top[0])}</span> ${escapeHtml(top[0])}`
+    : '–';
+  const streak = (typeof computeStreakCount === 'function') ? computeStreakCount() : 0;
+
+  wrap.innerHTML = `<div class="ministat-card">
+    <div class="ministat-item">
+      <div class="ministat-label">이번 달 기록</div>
+      <div class="ministat-value">${monthRecs.length}<span class="unit">회</span></div>
+    </div>
+    <div class="ministat-item">
+      <div class="ministat-label">가장 많았던 감정</div>
+      <div class="ministat-value">${topHtml}</div>
+    </div>
+    <div class="ministat-item">
+      <div class="ministat-label">연속 기록</div>
+      <div class="ministat-value">${streak}<span class="unit">일</span></div>
+    </div>
+  </div>`;
 }
 
 /* 더 자세히 보기 펼치기/접기 (V1.3) */
@@ -4829,6 +4948,8 @@ function toggleSummaryDetail() {
   detail.classList.toggle('open', willOpen);
   btn?.classList.toggle('open', willOpen);
   if (txt) txt.textContent = willOpen ? '간단히 보기' : '더 자세히 보기';
+  const hint = document.getElementById('summary-detail-hint');
+  if (hint) hint.textContent = willOpen ? '상세 분석을 보고 있어요' : '진료 리포트 · 주간 리포트 · 자동 회고 · 패턴 분석 등 12개의 상세 분석 보기';
   // 펼친 직후, 접힘 상태에서 0px로 그려진 차트들 재계산
   if (willOpen) {
     setTimeout(() => {
@@ -4840,7 +4961,8 @@ function toggleSummaryDetail() {
 
 function loadSummary() {
   // 요약 탭 재진입 시 보고 있던 월·선택 날짜를 유지한다.
-  renderClinicReport();     // 🩺 진료 리포트 (V11)  renderClinicChecklist();  // 📋 진료 체크리스트 (V11)
+  renderClinicReport();     // 🩺 진료 리포트 (V11)
+  renderClinicChecklist();  // 📋 진료 체크리스트 (V11)
   renderAutoRetro();        // 🪞 자동 회고 (V14)
   renderStreak();          // 🔥 연속 기록 (10번)
   renderCrisisCounter();   // 🚦 위기 카운터 (5번)
@@ -4861,6 +4983,7 @@ function loadSummary() {
   renderSummaryHero();     // ⭐ 핵심 요약 카드 (UI 표시용)
   renderWeeklyReport();    // 🗓 이번 주 감정 점수 카드
   renderReflectHero();     // 🌙 이번 달의 나 (V1.3)
+  renderMiniStats();       // 🌙 조용한 작은 통계 (V1.4)
   renderMonthlyReview();   // 🌙 월간 회고 (V18)
   // 캘린더는 별도 '캘린더' 탭으로 분리됨 (loadCalendar)
 }
