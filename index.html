@@ -1579,6 +1579,20 @@
     .home-today-big-emoji { font-size: 46px; line-height: 1; }
     .home-today-emo { font-size: 18px; font-weight: 800; color: var(--text); }
     .home-today-meta { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    /* 오늘의 기록 강화 행 */
+    .home-today-rows { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 9px; }
+    .ht-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); }
+    .ht-ico { font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+    .ht-key { color: var(--muted); flex-shrink: 0; }
+    .ht-val { color: var(--text); }
+    .ht-memo .ht-val { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .home-today-edit-btn {
+      width: 100%; margin-top: 14px; height: 42px; border: 1px solid var(--accent);
+      background: var(--accent-soft); color: var(--accent); border-radius: 12px;
+      font-family: var(--font); font-size: 13.5px; font-weight: 700; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; transition: transform var(--t-fast) var(--ease);
+    }
+    .home-today-edit-btn:active { transform: scale(0.98); }
 
     /* 연속 기록 + 한마디 */
     .home-row { margin-bottom: 12px; }
@@ -2285,11 +2299,7 @@
   <!-- ③ 오늘의 기록 요약 -->
   <div id="home-today-status"><!-- JS로 생성 --></div>
 
-  <!-- ④ 최근 기록 3개 -->
-  <div class="home-section-title">최근 기록</div>
-  <div id="home-recent"><!-- JS로 생성 --></div>
-
-  <!-- ⑤ 오늘의 문장 -->
+  <!-- ④ 오늘의 문장 -->
   <div class="home-quote-card" id="home-quote"><!-- JS로 생성 --></div>
 
   <!-- 감정 리포트 만들기 (분석은 평소 숨김, 필요할 때만) -->
@@ -4935,7 +4945,6 @@ function loadHome() {
   renderHomeRiskBanner();
   renderMoodCalendar();
   renderHomeTodayStatus();
-  renderHomeRecent();
   renderHomeQuote();
 }
 
@@ -5092,6 +5101,28 @@ function renderHomeTodayStatus() {
   const time = new Date(latest.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
   const emo = (latest.emotions || [])[0] || '—';
   const emoji = emotionEmoji(emo);
+  const moreCnt = (latest.emotions || []).length > 1 ? ` 외 ${latest.emotions.length - 1}개` : '';
+
+  // 오늘 상태(수면·약)는 dailyStatus 기준
+  const ds = getDailyStatusForRecord(latest);
+  const sleepQMap = { none:'', bad:'나쁨', ok:'보통', normal:'보통', good:'좋음' };
+  const medMap = { taken:'복용함', missed:'빼먹음', stopped:'단약 중', dosechange:'용량 변경', sideeffect:'부작용 있음' };
+
+  const rows = [];
+  rows.push(`<div class="ht-row"><span class="ht-ico">🕗</span><span class="ht-val">${time}</span></div>`);
+  if (ds.sleepHour != null) {
+    const q = sleepQMap[ds.sleepQuality] ? ` · ${sleepQMap[ds.sleepQuality]}` : '';
+    rows.push(`<div class="ht-row"><span class="ht-ico">😴</span><span class="ht-key">수면</span><span class="ht-val">${ds.sleepHour}시간${q}</span></div>`);
+  }
+  if (ds.medication && ds.medication !== 'na' && medMap[ds.medication]) {
+    rows.push(`<div class="ht-row"><span class="ht-ico">💊</span><span class="ht-key">약 상태</span><span class="ht-val">${medMap[ds.medication]}</span></div>`);
+  }
+  if (latest.memo && latest.memo.trim()) {
+    const firstLine = latest.memo.split('\n')[0].trim();
+    const preview = firstLine.length > 40 ? firstLine.slice(0, 40) + '…' : firstLine;
+    rows.push(`<div class="ht-row ht-memo"><span class="ht-ico">📝</span><span class="ht-val">${escapeHtml(preview)}</span></div>`);
+  }
+
   el.innerHTML = `<div class="home-today-card filled">
     <div class="home-today-head">
       <span class="home-today-label">오늘의 기록</span>
@@ -5100,10 +5131,12 @@ function renderHomeTodayStatus() {
     <div class="home-today-main">
       <span class="home-today-big-emoji">${emoji}</span>
       <div>
-        <div class="home-today-emo">${escapeHtml(emo)}${(latest.emotions||[]).length > 1 ? ` 외 ${(latest.emotions.length - 1)}개` : ''}</div>
-        <div class="home-today-meta">강도 ${latest.intensity ?? '—'}/10 · ${time}</div>
+        <div class="home-today-emo">${escapeHtml(emo)}${moreCnt}</div>
+        <div class="home-today-meta">강도 ${latest.intensity ?? '—'}/10</div>
       </div>
     </div>
+    <div class="home-today-rows">${rows.join('')}</div>
+    <button class="home-today-edit-btn" onclick="editRecord('${latest.id}')">기록 수정</button>
   </div>`;
 }
 
