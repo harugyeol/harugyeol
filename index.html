@@ -3662,6 +3662,7 @@ function toggleDetailMode() {
   if (txt) txt.textContent = willOpen ? '상세 기록 접기' : '상세 기록 펼치기';
   // 상세를 열면 모든 단계 카드를 한 번에 보여줌 (단계 잠금 해제)
   if (willOpen) page?.classList.add('steps-unlocked');
+  syncSaveButtonsVisibility(willOpen);
   if (willOpen) {
     setTimeout(() => detail.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   }
@@ -3673,6 +3674,7 @@ function collapseDetailMode() {
   detail?.classList.remove('open');
   btn?.classList.remove('open');
   if (txt) txt.textContent = '상세 기록 펼치기';
+  syncSaveButtonsVisibility(false);
 }
 function expandDetailMode() {
   const detail = document.getElementById('record-detail');
@@ -3683,6 +3685,14 @@ function expandDetailMode() {
   btn?.classList.add('open');
   if (txt) txt.textContent = '상세 기록 접기';
   page?.classList.add('steps-unlocked');
+  syncSaveButtonsVisibility(true);
+}
+
+/* 상세 펼침 여부에 따라 상단/하단 저장 버튼 하나만 보이게 (UX) */
+function syncSaveButtonsVisibility(detailOpen) {
+  const top = document.getElementById('simple-save-btn');
+  if (top) top.style.display = detailOpen ? 'none' : '';
+  // 하단 버튼은 record-detail 안에 있어 상세가 닫히면 자동으로 숨겨짐
 }
 
 // 단계형 진행: 감정 선택 여부에 따라 STEP2~5 노출
