@@ -668,6 +668,31 @@
     }
     .interval-btn.selected { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
+    /* 스마트 알림 옵션 행 */
+    .notif-opt-row {
+      display: flex; align-items: center; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border); cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .notif-opt-row:last-child { border-bottom: none; }
+    .notif-opt-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .notif-opt-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .notif-opt-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .notif-opt-row input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .notif-check {
+      flex-shrink: 0; width: 24px; height: 24px; border-radius: 7px;
+      border: 2px solid var(--border); background: var(--surface);
+      position: relative; transition: all var(--t-fast) var(--ease);
+    }
+    .notif-opt-row input:checked ~ .notif-check {
+      background: var(--accent); border-color: var(--accent);
+    }
+    .notif-opt-row input:checked ~ .notif-check::after {
+      content: ''; position: absolute; left: 8px; top: 4px;
+      width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    #notif-options.disabled { opacity: 0.4; pointer-events: none; }
+
     /* 권한 요청 버튼 */
     .perm-btn {
       width: 100%; padding: 13px; background: var(--surface2);
@@ -2926,7 +2951,7 @@
       <div class="settings-row" style="margin-top:16px;">
         <div>
           <div class="settings-label">알림 켜기</div>
-          <div class="settings-desc">앱을 열어둔 동안 주기적으로 알림이 와요.</div>
+          <div class="settings-desc">기록이 필요한 순간에만 조용히 찾아와요.</div>
         </div>
         <label class="toggle-wrap">
           <input type="checkbox" id="notif-toggle" onchange="onNotifToggleChange()">
@@ -2934,13 +2959,59 @@
           <span class="toggle-thumb"></span>
         </label>
       </div>
-      <!-- 알림 간격 선택 -->
-      <div id="interval-section">
-        <div class="settings-label" style="font-size:13px; color:var(--muted); margin-bottom:6px;">알림 간격</div>
-        <div class="interval-row" id="interval-btns"><!-- JS로 생성 --></div>
+
+      <!-- 스마트 알림 항목 -->
+      <div id="notif-options" style="margin-top:8px;">
+        <div class="settings-label" style="font-size:13px; color:var(--muted); margin:14px 0 8px;">받고 싶은 알림만 선택하세요</div>
+
+        <label class="notif-opt-row">
+          <span class="notif-opt-info">
+            <span class="notif-opt-title">☀ 출근 전 알림</span>
+            <span class="notif-opt-desc">오늘 컨디션은 어떤가요?</span>
+          </span>
+          <input type="checkbox" id="notif-morning" onchange="onNotifOptionChange()">
+          <span class="notif-check"></span>
+        </label>
+
+        <label class="notif-opt-row">
+          <span class="notif-opt-info">
+            <span class="notif-opt-title">🌇 퇴근 후 알림</span>
+            <span class="notif-opt-desc">오늘 하루는 어땠나요?</span>
+          </span>
+          <input type="checkbox" id="notif-evening" onchange="onNotifOptionChange()">
+          <span class="notif-check"></span>
+        </label>
+
+        <label class="notif-opt-row">
+          <span class="notif-opt-info">
+            <span class="notif-opt-title">🌙 자기 전 알림</span>
+            <span class="notif-opt-desc">오늘을 기록으로 남겨볼까요? (기본)</span>
+          </span>
+          <input type="checkbox" id="notif-night" onchange="onNotifOptionChange()">
+          <span class="notif-check"></span>
+        </label>
+
+        <label class="notif-opt-row">
+          <span class="notif-opt-info">
+            <span class="notif-opt-title">🌿 기록이 없을 때만</span>
+            <span class="notif-opt-desc">오늘 기록이 0개일 때만 부드럽게 알려요</span>
+          </span>
+          <input type="checkbox" id="notif-onlyempty" onchange="onNotifOptionChange()">
+          <span class="notif-check"></span>
+        </label>
+
+        <label class="notif-opt-row">
+          <span class="notif-opt-info">
+            <span class="notif-opt-title">🌱 안부 알림</span>
+            <span class="notif-opt-desc">힘들었던 날 다음, 기록이 없으면 안부를 물어요</span>
+          </span>
+          <input type="checkbox" id="notif-riskcheckup" onchange="onNotifOptionChange()">
+          <span class="notif-check"></span>
+        </label>
       </div>
-      <div style="margin-top:12px; font-size:12px; color:var(--muted); line-height:1.6;">
-        ℹ️ 앱을 열어둔 상태에서만 알림이 작동해요.<br>앱을 닫으면 알림은 중단됩니다.
+
+      <div style="margin-top:14px; font-size:12px; color:var(--muted); line-height:1.6;">
+        ℹ️ 앱을 열어둔 상태에서 설정한 시간이 되면 알림이 도착해요.<br>같은 알림은 하루 한 번만 보내요.
       </div>
     </div></div>
   </div>
@@ -3350,14 +3421,6 @@ const CYCLE_OPTIONS = [
 ];
 const CYCLE_LABEL = { none:'', period:'생리 중', pms:'PMS', ovulation:'배란기' };
 
-// 알림 간격 옵션 (분 단위)
-const INTERVAL_OPTIONS = [
-  { val: 30,  label: '30분' },
-  { val: 60,  label: '1시간' },
-  { val: 120, label: '2시간' },
-  { val: 180, label: '3시간' },
-];
-
 // 위험도 표시 레이블 맵
 const RISK_LABEL = { green: '안전', yellow: '주의', orange: '경고', red: '위험' };
 const RISK_ORDER = { green: 0, yellow: 1, orange: 2, red: 3 }; // 비교용 순위
@@ -3425,14 +3488,50 @@ let notifSettings = loadNotifSettings();
 let notifTimerId  = null;
 
 function loadNotifSettings() {
+  const defaults = {
+    enabled: false,
+    morning: false,        // ☀ 출근 전
+    evening: false,        // 🌇 퇴근 후
+    night: true,           // 🌙 자기 전 (기본 ON)
+    onlyIfEmpty: true,     // 오늘 기록이 없을 때만 추가 알림
+    riskCheckup: true,     // 위험도 높았던 다음 날 안부
+    morningTime: '08:00',
+    eveningTime: '19:00',
+    nightTime: '22:00',
+  };
   try {
     const s = JSON.parse(localStorage.getItem('notifSettings') || 'null');
-    if (s) return s;
+    if (s) {
+      // 구버전(intervalMin) 설정과 병합 — 누락 키는 기본값으로 보완
+      return { ...defaults, ...s };
+    }
   } catch {}
-  return { enabled: false, intervalMin: 60 };
+  return defaults;
 }
 function saveNotifSettings() {
   localStorage.setItem('notifSettings', JSON.stringify(notifSettings));
+}
+/* 알림 발송 기록 (하루 1회 중복 방지) — { 'YYYY-MM-DD': { morning:true, ... } } */
+function getNotifLog() {
+  try { return JSON.parse(localStorage.getItem('notifSentLog') || '{}'); } catch { return {}; }
+}
+function markNotifSent(dateKey, type) {
+  const log = getNotifLog();
+  if (!log[dateKey]) log[dateKey] = {};
+  log[dateKey][type] = true;
+  // 최근 7일치만 보관
+  const keys = Object.keys(log).sort().slice(-7);
+  const trimmed = {};
+  keys.forEach(k => trimmed[k] = log[k]);
+  localStorage.setItem('notifSentLog', JSON.stringify(trimmed));
+}
+function wasNotifSent(dateKey, type) {
+  const log = getNotifLog();
+  return !!(log[dateKey] && log[dateKey][type]);
+}
+/* 특정 날짜에 기록이 있는지 */
+function hasRecordOnDate(dateKey) {
+  return getRecords().some(r => r.createdAt && getLocalYMD(new Date(r.createdAt)) === dateKey);
 }
 
 /* =====================================================
@@ -3531,10 +3630,10 @@ function init() {
   renderTakenMeds();         // 복용약 체크박스 (2번)
   renderMedManageList();     // 설정 약 목록 (2번)
   renderCauseTabs();
-  renderIntervalBtns();
   renderListFilters();
   refreshFilterToggle();
   loadRecordList();
+  syncSaveButtonsVisibility(false);   // 초기: 상세 닫힘 → 상단만 표시
   initDarkMode();
   renderThemePicker();      // 🎨 색상 테마 선택 UI
   checkManiaBanner();  // 조증 신호 자동 감지
@@ -3691,8 +3790,10 @@ function expandDetailMode() {
 /* 상세 펼침 여부에 따라 상단/하단 저장 버튼 하나만 보이게 (UX) */
 function syncSaveButtonsVisibility(detailOpen) {
   const top = document.getElementById('simple-save-btn');
-  if (top) top.style.display = detailOpen ? 'none' : '';
-  // 하단 버튼은 record-detail 안에 있어 상세가 닫히면 자동으로 숨겨짐
+  const bottom = document.getElementById('simple-save-btn-bottom');
+  // 한 화면에 저장 버튼 하나만: 상세 펼치면 상단 숨김+하단 표시, 닫으면 반대
+  if (top)    top.style.display    = detailOpen ? 'none' : 'block';
+  if (bottom) bottom.style.display = detailOpen ? 'block' : 'none';
 }
 
 // 단계형 진행: 감정 선택 여부에 따라 STEP2~5 노출
@@ -6756,12 +6857,11 @@ function switchTab(tab) {
 
 // ── 설정 UI 초기화
 function initNotifUI() {
-  renderIntervalBtns();
-  refreshIntervalUI();
   document.getElementById('notif-toggle').checked = notifSettings.enabled;
+  syncNotifOptionUI();
   updatePermBadge();
 
-  // 저장된 설정으로 타이머 시작 (지원 브라우저 + 권한 허용된 경우만)
+  // 저장된 설정으로 스케줄러 시작 (지원 브라우저 + 권한 허용된 경우만)
   if (notifSettings.enabled
       && ('Notification' in window)
       && Notification.permission === 'granted') {
@@ -6769,32 +6869,33 @@ function initNotifUI() {
   }
 }
 
-// ── 알림 간격 버튼 렌더링
-function renderIntervalBtns() {
-  document.getElementById('interval-btns').innerHTML =
-    INTERVAL_OPTIONS.map(opt =>
-      `<button class="interval-btn" onclick="selectInterval(${opt.val})" id="interval-${opt.val}">${opt.label}</button>`
-    ).join('');
-}
-function refreshIntervalUI() {
-  INTERVAL_OPTIONS.forEach(opt => {
-    document.getElementById('interval-' + opt.val)
-      ?.classList.toggle('selected', notifSettings.intervalMin === opt.val);
+// ── 옵션 체크박스 상태를 설정값과 동기화
+function syncNotifOptionUI() {
+  const m = {
+    'notif-morning':    'morning',
+    'notif-evening':    'evening',
+    'notif-night':      'night',
+    'notif-onlyempty':  'onlyIfEmpty',
+    'notif-riskcheckup':'riskCheckup',
+  };
+  Object.entries(m).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = !!notifSettings[key];
   });
+  // 전체 알림 OFF면 옵션 영역 비활성화 표시
+  const opts = document.getElementById('notif-options');
+  if (opts) opts.classList.toggle('disabled', !notifSettings.enabled);
 }
 
-// ── 알림 간격 선택
-function selectInterval(min) {
-  notifSettings.intervalMin = min;
+// ── 개별 알림 옵션 변경
+function onNotifOptionChange() {
+  notifSettings.morning     = document.getElementById('notif-morning').checked;
+  notifSettings.evening     = document.getElementById('notif-evening').checked;
+  notifSettings.night       = document.getElementById('notif-night').checked;
+  notifSettings.onlyIfEmpty = document.getElementById('notif-onlyempty').checked;
+  notifSettings.riskCheckup = document.getElementById('notif-riskcheckup').checked;
   saveNotifSettings();
-  refreshIntervalUI();
-  if (notifSettings.enabled
-      && ('Notification' in window)
-      && Notification.permission === 'granted') {
-    stopNotifTimer();
-    startNotifTimer();
-  }
-  showToast('알림 간격이 변경되었어요.');
+  showToast('알림 설정이 저장되었어요.');
 }
 
 // ── 토글 변경
@@ -6808,12 +6909,14 @@ function onNotifToggleChange() {
 
   notifSettings.enabled = document.getElementById('notif-toggle').checked;
   saveNotifSettings();
+  syncNotifOptionUI();
 
   if (notifSettings.enabled) {
     if (Notification.permission !== 'granted') {
       document.getElementById('notif-toggle').checked = false;
       notifSettings.enabled = false;
       saveNotifSettings();
+      syncNotifOptionUI();
       showToast('먼저 알림 권한을 허용해 주세요.');
       return;
     }
@@ -6861,28 +6964,101 @@ function updatePermBadge() {
   if (permBtn) permBtn.style.display = perm === 'granted' ? 'none' : 'block';
 }
 
-// ── 알림 타이머 시작
-// 📌 PWA 전환 시: setInterval 대신 Service Worker push 이벤트로 교체
+// ── 스마트 알림 스케줄러
+// 매 분마다 현재 시각을 확인하여, 설정된 프리셋 시간이 되면 조건에 맞게 한 번만 발송
+// 📌 PWA 전환 시: Service Worker + Push/Notification Trigger API로 교체
 function startNotifTimer() {
   stopNotifTimer();
-  const ms = notifSettings.intervalMin * 60 * 1000;
-  notifTimerId = setInterval(sendNotif, ms);
+  checkSmartNotifications();                 // 켜는 즉시 한 번 점검
+  notifTimerId = setInterval(checkSmartNotifications, 60 * 1000);  // 1분마다
 }
-
-// ── 알림 타이머 중지
 function stopNotifTimer() {
   if (notifTimerId !== null) { clearInterval(notifTimerId); notifTimerId = null; }
 }
 
+// 현재 시각(HH:MM)이 목표 시각과 같은 분인지
+function isNowAtTime(hhmm) {
+  const now = new Date();
+  const cur = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  return cur === hhmm;
+}
+
+// 어제 날짜 key
+function getYesterdayKey() {
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  return getLocalYMD(d);
+}
+// 특정 날짜에 위험도 높은(orange/red) 기록이 있었는지
+function hadHighRiskOnDate(dateKey) {
+  return getRecords().some(r =>
+    r.createdAt && getLocalYMD(new Date(r.createdAt)) === dateKey &&
+    (r.riskLevel === 'orange' || r.riskLevel === 'red'));
+}
+
+const NOTIF_MESSAGES = {
+  morning:    { title: '☀ 출근 전', body: '오늘 컨디션은 어떤가요? 한 줄만 남겨도 충분해요.' },
+  evening:    { title: '🌇 퇴근 후', body: '오늘 하루는 어땠나요? 지금의 감정을 기록해볼까요?' },
+  night:      { title: '🌙 오늘 하루는 어땠나요?', body: '기억하지 못한 감정을 기록으로 남겨보세요.' },
+  emptyDay:   { title: '🌿 오늘 아직 기록이 없어요', body: '30초만 투자해서 오늘의 감정을 남겨보세요.' },
+  riskCheckup:{ title: '🌱 오늘도 괜찮은지 궁금해요', body: '한 줄만 남겨도 충분합니다.' },
+};
+
+// 매 분 호출: 조건을 만족하는 알림만 발송
+function checkSmartNotifications() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!notifSettings.enabled) return;
+
+  const todayKey = getLocalYMD(new Date());
+  const hasToday = hasRecordOnDate(todayKey);
+
+  // ① 위험도 안부 알림 — 어제 위험도 높았고, 오늘 종일 기록이 없을 때 (자기 전 시각에 1회)
+  if (notifSettings.riskCheckup && !hasToday
+      && hadHighRiskOnDate(getYesterdayKey())
+      && isNowAtTime(notifSettings.nightTime)
+      && !wasNotifSent(todayKey, 'riskCheckup')) {
+    sendNotif('riskCheckup');
+    markNotifSent(todayKey, 'riskCheckup');
+    return; // 안부 알림을 보냈으면 자기전/빈날 알림은 중복 발송하지 않음
+  }
+
+  // ② 출근 전
+  if (notifSettings.morning && isNowAtTime(notifSettings.morningTime)
+      && !wasNotifSent(todayKey, 'morning')) {
+    if (!(notifSettings.onlyIfEmpty && hasToday)) {  // '기록 없을 때만'이면 이미 기록 시 생략
+      sendNotif('morning');
+    }
+    markNotifSent(todayKey, 'morning');
+  }
+
+  // ③ 퇴근 후
+  if (notifSettings.evening && isNowAtTime(notifSettings.eveningTime)
+      && !wasNotifSent(todayKey, 'evening')) {
+    if (!(notifSettings.onlyIfEmpty && hasToday)) {
+      sendNotif('evening');
+    }
+    markNotifSent(todayKey, 'evening');
+  }
+
+  // ④ 자기 전 (기본) — onlyIfEmpty면 기록 없을 때만
+  if (notifSettings.night && isNowAtTime(notifSettings.nightTime)
+      && !wasNotifSent(todayKey, 'night')) {
+    if (!(notifSettings.onlyIfEmpty && hasToday)) {
+      sendNotif(hasToday ? 'night' : 'emptyDay');
+    }
+    markNotifSent(todayKey, 'night');
+  }
+}
+
 // ── 알림 발송
 // 📌 PWA 전환 시: self.registration.showNotification()으로 교체
-function sendNotif() {
-  if (!('Notification' in window)) return;          // 미지원 브라우저
-  if (Notification.permission !== 'granted') return; // 권한 없음
-  const notif = new Notification(APP_NAME, {
-    body: '지금 감정이 어떤지 짧게 기록해볼까요?',
+function sendNotif(type) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  const msg = NOTIF_MESSAGES[type] || NOTIF_MESSAGES.night;
+  const notif = new Notification(msg.title, {
+    body: msg.body,
     icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y=".9em" font-size="56">📓</text></svg>',
-    tag:  'emotion-reminder',
+    tag:  'harugyeol-' + type,
   });
   notif.onclick = () => { window.focus(); switchTab('record'); notif.close(); };
 }
